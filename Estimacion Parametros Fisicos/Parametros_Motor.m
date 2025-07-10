@@ -1,0 +1,32 @@
+%% Modelado de Motor DC
+% By: Sergio Andrés Castaño Giraldo
+% https://controlautomaticoeducacion.com/analisis-de-sistemas/modelo-de-motor-dc/
+
+clc
+clear all
+close all
+
+% ----------------- Parámetros del motor DC 24v -----------------
+
+B = 0.0082235;     % Fricción (N·m·s/rad)
+J = 0.0011997;     % Inercia (kg·m²)
+Ka = 0.63643;      % Constante de torque (N·m/A)
+Km = Ka;           % Constante de FEM (V·s/rad)
+R = 8.64;         % Resistencia (Ω)
+L = 0.0043199;    % Inductancia (H)
+
+
+%% Función de transferencias
+den = [L*J R*J+L*B R*B+Km*Ka];
+
+%Velocidad angular
+Gwv = tf(Km,den);
+
+%Corriente
+Giv = tf([J B],den);
+
+%Posición
+Gwt = tf(Km,conv(den,[1 0]));
+
+% sim('MotorModelo6v.slx')
+
