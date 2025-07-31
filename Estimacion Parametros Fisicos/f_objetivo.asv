@@ -1,0 +1,4 @@
+function obj = f_objetivo(p,data,Corriente_Real, Velocidad_Real)
+    X = motor_simulate(p,data);
+    obj =  sum(10*(X(:,1)-Corriente_Real).^2 + (X(:,2)-Velocidad_Real).^2);
+end

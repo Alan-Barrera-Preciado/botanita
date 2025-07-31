@@ -4,22 +4,12 @@ close all;
 
 % ----------------- Parámetros del motor DC 12v -----------------
 
-% b = 0.003353;     % Fricción (N·m·s/rad)
-% J = 8.1574e-5;     % Inercia (kg·m²)
-% Kt = 0.30765;      % Constante de torque (N·m/A)
-% Ke = Kt;           % Constante de FEM (V·s/rad)
-% Ra = 33.6954;         % Resistencia (Ω)
-% La = 0.42054;    % Inductancia (H)
-
-% ----------------- Parámetros del motor DC 24v -----------------
-
-b = 0.0082235;     % Fricción (N·m·s/rad)
-J = 0.0011997;     % Inercia (kg·m²)
-Kt = 0.63643;      % Constante de torque (N·m/A)
-Ke = Kt;           % Constante de FEM (V·s/rad)
-Ra = 8.64;         % Resistencia (Ω)
-La = 0.0043199;    % Inductancia (H)
-
+b = 0.017447;     % Fricción (N·m·s/rad)
+J = 0.0056459;    % Inercia (kg·m²)
+Kt = 0.35103;     % Constante de torque (N·m/A)
+Ke = Kt;          % Constante de FEM (V·s/rad)
+Ra = 10.397;      % Resistencia (Ω)
+La = 0.015917;    % Inductancia (H)
 
 % ----------------- Modelo continuo -----------------
 
@@ -38,14 +28,20 @@ sys_d = c2d(sys_c, dt, 'zoh');
 
 Ad = sys_d.A;
 Bd = sys_d.B;
+Cd = C;
 
-% ----------------- LQR discreto -----------------
+% ----------------- Aumento del sistema con integrador -----------------
 
-Q = [0.0001 0; 0 5];       % Penalización a estados
-R = 50;                  % Penalización al control
-[Pd, ~, ~] = dare(Ad, Bd, Q, R);
-K = R \ (Bd' * Pd);       % Ganancia óptima discreta
-Kr = inv(C * inv(eye(2) - Ad + Bd*K) * Bd);  % Ganancia de referencia
+A_aug = [Ad, zeros(2,1);
+        -Cd*Ad, 1];
+B_aug = [Bd;
+        -Cd*Bd];
+
+Q_aug = diag([0.01, 10, 10]);   % penalización para [i; w; e_int]
+R_aug = 10;
+
+[P_aug, ~, ~] = dare(A_aug, B_aug, Q_aug, R_aug);
+K_aug = R_aug \ (B_aug' * P_aug);  % K_aug = [K_x, K_i]
 
 % ----------------- Filtro de Kalman discreto -----------------
 
@@ -53,15 +49,16 @@ F_K = Ad;
 G_K = Bd;
 H_K = eye(2);             % Se observan corriente y velocidad
 x_hat = [0; 0];           % Estimación inicial
-P_K = diag([0.05, 0.75]);             % Covarianza inicial
+P_K = diag([1, 1]);       % Covarianza inicial
 
-Q_K = diag([0, 0]);  % Ruido de proceso
-R_K = diag([0.8, 0.2]); % Ruido de medición
+Q_K = diag([10, 0.05]);   % Ruido de proceso
+R_K = diag([0.5, 5]);     % Ruido de medición
 
 % ----------------- Variables iniciales -----------------
 
 x = [0; 0];     % Estados reales [corriente; velocidad]
-u = 0;          % Voltaje aplicad        % Referencia en rad/s
+e_int = 0;      % Estado integrador
+u = 0;
 
 % ----------------- Almacenamiento para gráficas -----------------
 
@@ -75,22 +72,29 @@ err_plot = [];
 % ----------------- Simulación discreta -----------------
 
 for t = 0:dt:S
-
-    wr = 2 + 5*sin(t)+2*cos(t*5);
+    
+    wr = 2 + 5*sin(t) + 2*cos(5*t);  % Referencia variable
+    
     % Medición simulada (con ruido)
-    z = H_K * x + 0.5*randn(2,1);
-
+    z = H_K * x + 2*randn(2,1);
+    
     % Estimación (corrección)
     K_K = P_K * H_K' / (H_K * P_K * H_K' + R_K);
     x_hat = x_hat + K_K * (z - H_K * x_hat);
     P_K = (eye(2) - K_K * H_K) * P_K;
 
-    % Control
-    u = -K * x_hat + Kr * wr;
-    u = min(12, max(-12, u));  % Saturación
+    % Error y actualización del integrador
+    error = wr - x_hat(2);
+    e_int = e_int + error * dt;
+
+    % Estado aumentado para control
+    x_aug_hat = [x_hat; e_int];
+
+    % Control LQI
+    u = -K_aug * x_aug_hat;
 
     % Evolución real del sistema
-    x = F_K * x + G_K * u + 0.05* randn(2,1);
+    x = F_K * x + G_K * u + 0.1*randn(2,1);
 
     % Predicción del estimador
     x_hat = F_K * x_hat + G_K * u;
@@ -102,7 +106,7 @@ for t = 0:dt:S
     u_plot = [u_plot, u];
     t_plot = [t_plot, t];
     ref_plot = [ref_plot, wr];
-    err_plot = [err_plot, wr - x_hat(2)];
+    err_plot = [err_plot, error];
 end
 
 % ----------------- Gráficas -----------------
@@ -115,7 +119,7 @@ plot(t_plot, ref_plot, 'k--', 'LineWidth', 2);      % Referencia
 legend("Velocidad real", "Estimación", "Referencia");
 xlabel("Tiempo (s)");
 ylabel("Velocidad (rad/s)");
-title("Seguimiento de referencia con LQR + Kalman");
+title("Seguimiento de referencia con LQI + Kalman");
 
 figure;
 plot(t_plot, u_plot, 'LineWidth', 2);

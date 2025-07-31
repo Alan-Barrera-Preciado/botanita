@@ -31,11 +31,14 @@ for k in range(N):
     cad = f"{1}\n"
     serialArduino.write(cad.encode('ascii'))
     Lectura = serialArduino.readline().decode('ascii').rstrip('\n')
+    print(Lectura)
     Motor_Izq, Motor_Der = Lectura.split(':')
     Rad_Izq, Corriente_Izq = map(float, Motor_Izq.split(','))
     Rad_Der, Corriente_Der = map(float, Motor_Der.split(','))
     Corriente_Izq = Corriente_Izq/1000
     Corriente_Der = Corriente_Der/1000
+    Rad_Izq = Rad_Izq*0.10472
+    Rad_Der = Rad_Der*0.10472
     vector_radianes_Izq.append(Rad_Izq)
     vector_corriente_Izq.append(Corriente_Izq)
     vector_radianes_Der.append(Rad_Der)
@@ -52,7 +55,6 @@ serialArduino.close()
 
 data_Izq = {'t':vector_tiempo,'Radianes':vector_radianes_Izq, 'Corriente':vector_corriente_Izq}
 data_Der = {'t':vector_tiempo,'Radianes':vector_radianes_Der, 'Corriente':vector_corriente_Der}
-
 
 df_Izq = pd.DataFrame(data_Izq)
 df_Izq.to_csv('df_12v.csv',index=False)

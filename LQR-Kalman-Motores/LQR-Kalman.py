@@ -10,13 +10,13 @@ dt=0.05
 
 # ----------------- Espacio de estados discretizado (Motor Izquierda 12v) -----------------
 
-Ad_Izq = np.array([[-0.0493, -0.0005], [2.4144, -0.0243]])
-Bd_Izq = np.array([[0.0176],[1.4788]])
+Ad_Izq = np.array([[0.6154, -0.0954], [0.4686, 0.6074]])
+Bd_Izq = np.array([[0.1575],[0.5362]])
 
 # ----------------- Espacio de estados discretizado (Motor Derecha 24v) -----------------
 
-Ad_Der = np.array([[-0.0020, -0.0074], [0.0266, 0.0980]])
-Bd_Der = np.array([[0.0272],[1.2053]])
+Ad_Der = np.array([[0.6154, -0.0954], [0.4686, 0.6074]])
+Bd_Der = np.array([[0.1575],[0.5362]])
 
 C = np.array([0, 1])
 
@@ -26,8 +26,8 @@ Fk_Izq = Ad_Izq
 Gk_Izq = Bd_Izq
 Hk_Izq = np.eye(2,2)
 
-Pk_Izq = np.array([[0.05, 0],[0, 0.75]])
-Qk_Izq = np.array([[1e-5, 0],[0, 1e-4]])
+Pk_Izq = np.array([[0.1, 0],[0, 0.1]])
+Qk_Izq = np.array([[1e-4, 0],[0, 1e-3]])
 Rk_Izq = np.array([[1e-2, 0],[0, 1e-1]])
 
 x_hat_Izq = np.array([[0],[0]])
@@ -38,23 +38,23 @@ Fk_Der = Ad_Der
 Gk_Der = Bd_Der
 Hk_Der = np.eye(2,2)
 
-Pk_Der = np.array([[0.05, 0],[0, 0.75]])
-Qk_Der = np.array([[1e-5, 0],[0, 1e-4]])
+Pk_Der = np.array([[0.1, 0],[0, 0.1]])
+Qk_Der = np.array([[1e-4, 0],[0, 1e-3]])
 Rk_Der = np.array([[1e-2, 0],[0, 1e-1]])
 
 x_hat_Der = np.array([[0],[0]])
 
 # ----------------- LQR (Motor Izquierda 12v) -----------------
 
-K_Izq = np.array([0.0002, 0.0148])
-Kr_Izq = 0.6897
+K_Izq = np.array([0.2857, 1.0904])
+Kr_Izq = 1.8001
 
 u_Izq = 0
 
 # ----------------- LQR (Motor Derecha 24v) -----------------
 
-K_Der = np.array([0.0003, 0.1216])
-Kr_Der = 0.8696
+K_Der = np.array([0.2857, 1.0904])
+Kr_Der = 1.8001
 
 u_Der = 0
 
@@ -91,8 +91,8 @@ Tiempo = 0
 t = 0
 
 for t in range(N):
-    RadRef_Izq = 6.28318531
-    RadRef_Der = 6.28318531
+    RadRef_Izq = 6.3
+    RadRef_Der = 6.3
     time.sleep(dt)
     PWM_Izq = max(-12, min(12, u_Izq))
     PWM_Izq =  PWM_Izq/12 * 255
@@ -128,8 +128,8 @@ for t in range(N):
     x_hat_Der = x_hat_Der + Kk_Der @  (x_Der - Hk_Der @ x_hat_Der)
     Pk_Der = Pk_Der - Kk_Der @ Hk_Der @ Pk_Der
 
-    u_Der = -K_Der @ x_Der + Kr_Der * RadRef_Der
-    u_Izq = -K_Izq @ x_Izq + Kr_Izq * RadRef_Izq
+    u_Der = -K_Der @ x_hat_Der + Kr_Der * RadRef_Der
+    u_Izq = -K_Izq @ x_hat_Izq + Kr_Izq * RadRef_Izq
 
     x_hat_Der = Fk_Der @ x_hat_Der + Gk_Der * u_Der
     Pk_Der = Fk_Der @ Pk_Der @ Fk_Der.T + Qk_Der

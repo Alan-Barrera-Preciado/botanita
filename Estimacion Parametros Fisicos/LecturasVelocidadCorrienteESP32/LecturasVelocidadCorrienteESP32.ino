@@ -1,19 +1,20 @@
 #include <Wire.h>
 #include <INA226_WE.h>
-INA226_WE ina226_Izq = INA226_WE(0x40);  // Dirección I2C por defecto
-INA226_WE ina226_Der = INA226_WE(0x41);  // Dirección I2C por defecto
 
-int MotorSH_Izq = 6;
+INA226_WE ina226_Izq = INA226_WE(0x40);
+INA226_WE ina226_Der = INA226_WE(0x41);
+
+int MotorSH_Izq = 17;
 int MotorSA_Izq = 5;
 
-int MotorSH_Der = 9;
-int MotorSA_Der = 10;
+int MotorSH_Der = 2;
+int MotorSA_Der = 15;
 
 int RPM_Izq = 0;
 int RPM_Der = 0;
 
-int Encoder_Izq = 2;
-int Encoder_Der = 3;
+int Encoder_Izq = 16;
+int Encoder_Der = 4;
 int Resolucion_Izq = 800;
 int Resolucion_Der = 700;
 volatile byte Pulsos_Izq = 0;
@@ -24,12 +25,39 @@ int PulsosIntervalo_Der = 0;
 float Corriente_Izq = 0;
 float Corriente_Der = 0;
 
+unsigned long TiempoAnterior = 0;
+unsigned long TiempoActual = 0;
+float IntervaloTiempo = 0;
+int t = 0;
 int Aux = 1;
-float t = 0;
 
 void setup() {
   Serial.begin(115200);
+  while (!Serial);
+
+  // Ina Setup
+
   Wire.begin();
+
+  ina226_Izq.init();
+  ina226_Izq.setAverage(AVERAGE_16);
+  ina226_Izq.setConversionTime(CONV_TIME_1100);
+  ina226_Izq.waitUntilConversionCompleted();
+
+  ina226_Der.init();
+  ina226_Der.setAverage(AVERAGE_16);
+  ina226_Der.setConversionTime(CONV_TIME_1100);
+  ina226_Der.waitUntilConversionCompleted();
+
+  // Encoders Setup
+
+  pinMode(Encoder_Izq, INPUT);
+  attachInterrupt(digitalPinToInterrupt(Encoder_Izq), Contador_Izq, RISING);
+  pinMode(Encoder_Der, INPUT);
+  attachInterrupt(digitalPinToInterrupt(Encoder_Der), Contador_Der, RISING);
+  
+  // Motores Setup
+
   pinMode(MotorSH_Izq, OUTPUT);
   pinMode(MotorSA_Izq, OUTPUT);
   analogWrite(MotorSH_Izq, 0);
@@ -40,22 +68,6 @@ void setup() {
   analogWrite(MotorSH_Der, 0);
   analogWrite(MotorSA_Der, 0);
 
-  pinMode(Encoder_Izq, INPUT);
-  attachInterrupt(digitalPinToInterrupt(Encoder_Izq), Contador_Izq, RISING);
-  pinMode(Encoder_Der, INPUT);
-  attachInterrupt(digitalPinToInterrupt(Encoder_Der), Contador_Der, RISING);
-
-  if (!ina226_Izq.init()) {
-    Serial.println("INA226 Izq no detectado.");
-  }
-  if (!ina226_Der.init()) {
-    Serial.println("INA226 Der no detectado.");
-  }
-
-  ina226_Izq.setAverage(AVERAGE_16);
-  ina226_Izq.setConversionTime(CONV_TIME_1100);
-  ina226_Der.setAverage(AVERAGE_16);
-  ina226_Der.setConversionTime(CONV_TIME_1100);
 }
 
 void loop() {
@@ -119,29 +131,26 @@ void Contador_Der(){
   Pulsos_Der++;
 }
 
-float CalcularRPM_Izq(){
-  noInterrupts();
-  PulsosIntervalo_Izq = Pulsos_Izq;
-  Pulsos_Izq = 0;
-  RPM_Izq = (PulsosIntervalo_Izq/0.05)*60/Resolucion_Izq;
-  interrupts();
-  return RPM_Izq;
-}
-
-float CalcularRPM_Der(){
-  noInterrupts();
-  PulsosIntervalo_Der = Pulsos_Der;
-  Pulsos_Der = 0;
-  RPM_Der = (PulsosIntervalo_Der/0.05)*60/Resolucion_Der;
-  interrupts();
-  return RPM_Der;
+float CalcularRPM(float IntervaloTiempo, int Pulsos, int Resolucion){
+  float RPM = (Pulsos/IntervaloTiempo)*60/Resolucion;
+  return RPM;
 }
 
 void EnviarDatos() {
-  RPM_Izq = CalcularRPM_Izq();
-  RPM_Der = CalcularRPM_Der();
+  
+  noInterrupts();
+  TiempoActual = millis();
+  IntervaloTiempo = (TiempoActual - TiempoAnterior) / 1000;
+  TiempoAnterior = TiempoActual;
+  RPM_Izq = CalcularRPM(IntervaloTiempo, Pulsos_Izq, Resolucion_Izq);
+  RPM_Der = CalcularRPM(IntervaloTiempo, Pulsos_Der, Resolucion_Der);
+  Pulsos_Izq = 0;
+  Pulsos_Der = 0;
+  interrupts();
+
   Corriente_Izq = ina226_Izq.getCurrent_mA();
   Corriente_Der = ina226_Der.getCurrent_mA();
+  
   Serial.print(RPM_Izq);
   Serial.print(",");
   Serial.print(Corriente_Izq);

@@ -1,32 +1,20 @@
-%% Modelado de Motor DC
-% By: Sergio Andrés Castaño Giraldo
-% https://controlautomaticoeducacion.com/analisis-de-sistemas/modelo-de-motor-dc/
-
-clc
 clear all
 close all
 
-% ----------------- Parámetros del motor DC 24v -----------------
+% ----------------- Parámetros medidos del motor DC 12v -----------------
 
-B = 0.0082235;     % Fricción (N·m·s/rad)
-J = 0.0011997;     % Inercia (kg·m²)
-Ka = 0.63643;      % Constante de torque (N·m/A)
+B = 0.0024079912;     % Fricción (N·m·s/rad)
+J = 5.66646261e-5;     % Inercia (kg·m²)
+Ka = 0.2303506651;      % Constante de torque (N·m/A)
 Km = Ka;           % Constante de FEM (V·s/rad)
-R = 8.64;         % Resistencia (Ω)
-L = 0.0043199;    % Inductancia (H)
+R = 23.4;         % Resistencia (Ω)
+L = 0.0124;    % Inductancia (H)
 
+% ----------------- Parámetros medidos del motor DC 24v -----------------
 
-%% Función de transferencias
-den = [L*J R*J+L*B R*B+Km*Ka];
-
-%Velocidad angular
-Gwv = tf(Km,den);
-
-%Corriente
-Giv = tf([J B],den);
-
-%Posición
-Gwt = tf(Km,conv(den,[1 0]));
-
-% sim('MotorModelo6v.slx')
-
+% B = 0.00685316914;     % Fricción (N·m·s/rad)
+% J = 9.99790139e-4;     % Inercia (kg·m²)
+% Ka = 0.5366940211;      % Constante de torque (N·m/A)
+% Km = Ka;           % Constante de FEM (V·s/rad)
+% R = 7.2;         % Resistencia (Ω)
+% L = 0.0124;    % Inductancia (H)

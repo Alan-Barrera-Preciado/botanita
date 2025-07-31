@@ -34,13 +34,13 @@ beq = [];
 nlcon = [];
 
 % Restricciones
-
-lb = [   1e-5,    1e-4,  0.02,  0.02,  1,  0.0001]; % lower bound
-ub = [   1e-3,    5e-2,  0.60,  0.60,  12, 0.05]; % upper bound
-% lb = p0*0.1; lb(end) = 0.0001;
-% ub = p0*10; ub(end) = 0.05;
+% lb = p0*0.7; lb(end)=1e-6;
+% ub = p0*1.3; ub(end) = 1;
+lb = [   1e-6,    1e-5,  0.01,  0.01, 0.5,  1e-5]; % lower bound
+ub = [5e-3,0.03,0.5,0.5,  10,  3e-3]; % upper bound
 %    [   J,    B, Ka, Km,  R,     L]
-
+% lb = [   0,    0,  0,  0, 0,  0]; % lower bound
+% ub = [];
 % options = optimoptions(@fmincon,'Algorithm','interior-point');
 p = fmincon(@(p)f_objetivo(p,data,Corriente_Real, Velocidad_Real),p0,A,b,Aeq,beq,lb,ub,nlcon); %,options);
 
@@ -61,7 +61,7 @@ disp(['R: ' num2str(Ro)])
 disp(['L: ' num2str(Lo)])
 
 %Calcula el la dinámica del modelo con los nuevos parametros
-X = motor_simulate(p,data, Corriente_Real, Velocidad_Real); %Modelo Nuevo
+X = motor_simulate(p,data); %Modelo Nuevo
 
 figure(2)
 hold on
@@ -80,3 +80,21 @@ plot(t,Corriente_Real(:,1), 'LineWidth',2, 'LineStyle', '--')
 plot(t,X(:,1), 'LineWidth', 2, 'LineStyle', '-')
 ylabel('Corriente (mA)')
 legend('Modelo inicial','Motor real', 'Modelo Optimizado')
+
+
+%Voltaje Leido en los Terminales del motor
+% Vm = 3.57;
+
+
+%% Función de transferencias
+den = [Lo*Jo Ro*Jo+Lo*Bo Ro*Bo+Kmo*Kao];
+
+%Velocidad angular
+Gwvo = tf(Kmo,den);
+
+%Corriente
+Givo = tf([Jo Bo],den);
+
+%Posición
+Gwto = tf(Kmo,conv(den,[1 0]));
+
