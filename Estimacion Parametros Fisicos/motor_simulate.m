@@ -1,8 +1,5 @@
-function X = motor_simulate(p,data, Corriente_Real, Velocidad_Real)
+function X = motor_simulate(p,t,u, Corriente_Real, Velocidad_Real)
         
-    t = data(:,1);
-    u = data(:,4);
-    
     %Estados
     X = zeros(length(t),2);
     X(1,:) = 0; %Corriente

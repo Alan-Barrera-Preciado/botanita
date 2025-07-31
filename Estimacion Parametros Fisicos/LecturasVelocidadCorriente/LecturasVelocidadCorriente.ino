@@ -14,8 +14,8 @@ int RPM_Der = 0;
 
 int Encoder_Izq = 2;
 int Encoder_Der = 3;
-int Resolucion_Izq = 800;
-int Resolucion_Der = 700;
+int Resolucion_Izq = 750;
+int Resolucion_Der = 750;
 volatile byte Pulsos_Izq = 0;
 volatile byte Pulsos_Der = 0;
 int PulsosIntervalo_Izq = 0;
@@ -23,6 +23,13 @@ int PulsosIntervalo_Der = 0;
 
 float Corriente_Izq = 0;
 float Corriente_Der = 0;
+
+unsigned long TiempoActual_Izq = 0;
+unsigned long TiempoAnterior_Izq = 0;
+unsigned long TiempoActual_Der = 0;
+unsigned long TiempoAnterior_Der = 0;
+float dt_Izq = 0;
+float dt_Der = 0;
 
 int Aux = 1;
 float t = 0;
@@ -120,19 +127,25 @@ void Contador_Der(){
 }
 
 float CalcularRPM_Izq(){
+  TiempoActual_Izq = millis();
+  dt_Izq = (TiempoActual_Izq - TiempoAnterior_Izq)/1000.0;
+  TiempoAnterior_Izq = TiempoActual_Izq;
   noInterrupts();
   PulsosIntervalo_Izq = Pulsos_Izq;
   Pulsos_Izq = 0;
-  RPM_Izq = (PulsosIntervalo_Izq/0.05)*60/Resolucion_Izq;
+  RPM_Izq = (PulsosIntervalo_Izq/dt_Izq)*60/Resolucion_Izq;
   interrupts();
   return RPM_Izq;
 }
 
 float CalcularRPM_Der(){
+  TiempoActual_Der = millis();
+  dt_Der = (TiempoActual_Der - TiempoAnterior_Der)/1000.0;
+  TiempoAnterior_Der = TiempoActual_Der;
   noInterrupts();
   PulsosIntervalo_Der = Pulsos_Der;
   Pulsos_Der = 0;
-  RPM_Der = (PulsosIntervalo_Der/0.05)*60/Resolucion_Der;
+  RPM_Der = (PulsosIntervalo_Der/dt_Der)*60/Resolucion_Der;
   interrupts();
   return RPM_Der;
 }

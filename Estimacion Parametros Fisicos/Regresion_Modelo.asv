@@ -1,29 +1,31 @@
-%% Ajuste de parámetros de Motor DC
-% By: Sergio Andrés Castaño Giraldo
-% https://controlautomaticoeducacion.com/analisis-de-sistemas/modelo-de-motor-dc/
-
-
-% clc
-% clear
-% close
-
 close all
 clc
 
 data2 = readtable("df_12v.csv");
+data3 = readtable("df_24v.csv");
 t = data(:,1);
 t2 = table2array(data2(:,1));
-Corriente_Sim = data(:,2);
-Corriente_Real = table2array(data2(:,3));
-Velocidad_Sim = data(:,3);
-Velocidad_Real = table2array(data2(:,2));
-u = data(:,4);
+t3 = table2array(data3(:,1));
+
+Corriente_Sim_Izq = data(:,2);
+Corriente_Real_Izq = table2array(data2(:,3));
+Velocidad_Sim_Izq = data(:,3);
+Velocidad_Real_Izq = table2array(data2(:,2));
+u_Izq = data(:,4);
+
+Corriente_Sim_Der = data(:,5);
+Corriente_Real_Der = table2array(data3(:,3));
+Velocidad_Sim_Der = data(:,6);
+Velocidad_Real_Der = table2array(data3(:,2));
+u_Der = data(:,7);
 
 %Variables de decisión
-p0 = [J, B, Ka, Km, R, L];
+p0_Izq = [J_Izq, B_Izq, Ka_Izq, Km_Izq, R_Izq, L_Izq];
+p0_Der = [J_Der, B_Der, Ka_Der, Km_Der, R_Der, L_Der];
 
 % Muestra el objetivo inicial
-disp(['Initial SSE Objective: ' num2str(f_objetivo(p0,data,Corriente_Real, Velocidad_Real))])
+disp(['SSE Objetivo Inicial Izquierdo: ' num2str(f_objetivo(p0_Izq,t,u_Izq,Corriente_Real_Izq, Velocidad_Real_Izq))])
+disp(['SSE Objetivo Inicial Derecho: ' num2str(f_objetivo(p0_Der,t,u_Der,Corriente_Real_Der, Velocidad_Real_Der))])
 
 
 %% Parámetros de Optimización
@@ -34,34 +36,48 @@ beq = [];
 nlcon = [];
 
 % Restricciones
-% lb = p0*0.7; lb(end)=1e-6;
-% ub = p0*1.3; ub(end) = 1;
-lb = [   1e-6,    1e-5,  0.01,  0.01, 0.5,  1e-5]; % lower bound
-ub = [5e-3,0.03,0.5,0.5,  10,  3e-3]; % upper bound
+
+lb = [   1e-5,    1e-4,  0.02,  0.02,  1,  0.0001]; % lower bound
+ub = [   1e-3,    5e-2,  0.60,  0.60,  12, 0.05]; % upper bound
 %    [   J,    B, Ka, Km,  R,     L]
-% lb = [   0,    0,  0,  0, 0,  0]; % lower bound
-% ub = [];
+
 % options = optimoptions(@fmincon,'Algorithm','interior-point');
-p = fmincon(@(p)f_objetivo(p,data,Corriente_Real, Velocidad_Real),p0,A,b,Aeq,beq,lb,ub,nlcon); %,options);
+p_Izq = fmincon(@(p)f_objetivo(p_Izq,t,u_Izq,Corriente_Real_Izq, Velocidad_Real_Izq),p0_Izq,A,b,Aeq,beq,lb,ub,nlcon); %,options);
+p_Der = fmincon(@(p)f_objetivo(p_Der,t,u_Der,Corriente_Real_Der, Velocidad_Real_Der),p0_Der,A,b,Aeq,beq,lb,ub,nlcon);
 
 % show final objective
-disp(['Final SSE Objective: ' num2str(f_objetivo(p,data,Corriente_Real, Velocidad_Real))])
+disp(['SSE Objetivo Final Izquierdo: ' num2str(f_objetivo(p_Izq,t,u_Izq,Corriente_Real_Izq, Velocidad_Real_Izq))])
+disp(['SSE Objetivo Final Derecho: ' num2str(f_objetivo(p_Der,t,u_Der,Corriente_Real_Der, Velocidad_Real_Der))])
 
 % Parametros del Motor Optimizados
-Jo  = p(1);
-Bo  = p(2);
-Kao = p(3);
-Kmo = p(4);
-Ro  = p(5);
-Lo  = p(6);
-disp(['J: ' num2str(Jo)])
-disp(['B: ' num2str(Bo)])
-disp(['Ka=Km: ' num2str(Kao)])
-disp(['R: ' num2str(Ro)])
-disp(['L: ' num2str(Lo)])
+Jo_Izq  = p_Izq(1);
+Bo_Izq  = p_Izq(2);
+Kao_Izq = p_Izq(3);
+Kmo_Izq = p_Izq(4);
+Ro_Izq  = p_Izq(5);
+Lo_Izq  = p_Izq(6);
+disp(['J_Izq: ' num2str(Jo_Izq)])
+disp(['B_Izq: ' num2str(Bo_Izq)])
+disp(['Ka_Izq=Km_Izq: ' num2str(Kao_Izq)])
+disp(['R_Izq: ' num2str(Ro_Izq)])
+disp(['L_Izq: ' num2str(Lo_Izq)])
+
+Jo_Der  = p_Der(1);
+Bo_Der  = p_Der(2);
+Kao_Der = p_Der(3);
+Kmo_Der = p_Der(4);
+Ro_Der  = p_Der(5);
+Lo_Der  = p_Der(6);
+disp(['J_Der: ' num2str(Jo_Der)])
+disp(['B_Der: ' num2str(Bo_Der)])
+disp(['Ka_Der=Km_Der: ' num2str(Kao_Der)])
+disp(['R_Der: ' num2str(Ro_Der)])
+disp(['L_Der: ' num2str(Lo_Der)])
 
 %Calcula el la dinámica del modelo con los nuevos parametros
-X = motor_simulate(p,data); %Modelo Nuevo
+X_Izq = motor_simulate(p_Izq,t,u_Izq, Corriente_Real_Izq, Velocidad_Real_Izq); %Modelo Nuevo
+X_Der = motor_simulate(p_Der,t,u_Der, Corriente_Real_Der, Velocidad_Real_Der);
+
 
 figure(2)
 hold on
@@ -80,21 +96,3 @@ plot(t,Corriente_Real(:,1), 'LineWidth',2, 'LineStyle', '--')
 plot(t,X(:,1), 'LineWidth', 2, 'LineStyle', '-')
 ylabel('Corriente (mA)')
 legend('Modelo inicial','Motor real', 'Modelo Optimizado')
-
-
-%Voltaje Leido en los Terminales del motor
-% Vm = 3.57;
-
-
-%% Función de transferencias
-den = [Lo*Jo Ro*Jo+Lo*Bo Ro*Bo+Kmo*Kao];
-
-%Velocidad angular
-Gwvo = tf(Kmo,den);
-
-%Corriente
-Givo = tf([Jo Bo],den);
-
-%Posición
-Gwto = tf(Kmo,conv(den,[1 0]));
-
