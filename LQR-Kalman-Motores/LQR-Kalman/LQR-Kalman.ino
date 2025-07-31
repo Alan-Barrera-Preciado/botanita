@@ -31,6 +31,13 @@ float corriente_promedio_Der = 0;
 int lecturaCorriente_Der = 0;
 float Corriente_Der = 0;
 
+unsigned long TiempoActual_Izq = 0;
+unsigned long TiempoAnterior_Izq = 0;
+unsigned long TiempoActual_Der = 0;
+unsigned long TiempoAnterior_Der = 0;
+float dt_Izq = 0;
+float dt_Der = 0;
+
 float Control_Izq = 0;
 int PWM_Izq = 0;
 
@@ -134,19 +141,25 @@ void EnviarDatos() {
 }
 
 float CalcularRPM_Izq(){
+  TiempoActual_Izq = millis();
+  dt_Izq = (TiempoActual_Izq - TiempoAnterior_Izq)/1000.0;
+  TiempoAnterior_Izq = TiempoActual_Izq;
   noInterrupts();
   PulsosIntervalo_Izq = Pulsos_Izq;
   Pulsos_Izq = 0;
-  RPM_Izq = (PulsosIntervalo_Izq/0.05)*60/800;
+  RPM_Izq = (PulsosIntervalo_Izq/dt_Izq)*60/750;
   interrupts();
   return RPM_Izq;
 }
 
 float CalcularRPM_Der(){
+  TiempoActual_Der = millis();
+  dt_Der = (TiempoActual_Der - TiempoAnterior_Der)/1000.0;
+  TiempoAnterior_Der = TiempoActual_Der;
   noInterrupts();
   PulsosIntervalo_Der = Pulsos_Der;
   Pulsos_Der = 0;
-  RPM_Der = (PulsosIntervalo_Der/0.05)*60/700;
+  RPM_Der = (PulsosIntervalo_Der/dt_Der)*60/750;
   interrupts();
   return RPM_Der;
 }
