@@ -58,7 +58,8 @@ Ro_Izq  = p_Izq(5);
 Lo_Izq  = p_Izq(6);
 disp(['J_Izq: ' num2str(Jo_Izq)])
 disp(['B_Izq: ' num2str(Bo_Izq)])
-disp(['Ka_Izq=Km_Izq: ' num2str(Kao_Izq)])
+disp(['Ka_Izq: ' num2str(Kao_Izq)])
+disp(['Km_Izq: ' num2str(Kmo_Izq)])
 disp(['R_Izq: ' num2str(Ro_Izq)])
 disp(['L_Izq: ' num2str(Lo_Izq)])
 
@@ -70,7 +71,8 @@ Ro_Der  = p_Der(5);
 Lo_Der  = p_Der(6);
 disp(['J_Der: ' num2str(Jo_Der)])
 disp(['B_Der: ' num2str(Bo_Der)])
-disp(['Ka_Der=Km_Der: ' num2str(Kao_Der)])
+disp(['Ka_Der: ' num2str(Kao_Der)])
+disp(['Km_Der: ' num2str(Kmo_Der)])
 disp(['R_Der: ' num2str(Ro_Der)])
 disp(['L_Der: ' num2str(Lo_Der)])
 

@@ -58,14 +58,14 @@ Bd_Der = sys_d_Der.B;
 
 % ----------------- LQR discreto -----------------
 
-Q_Izq = [0.001 0; 0 20];       % Penalización a estados
-R_Izq = 15;                  % Penalización al control
+Q_Izq = [0.001 0; 0 10];       % Penalización a estados
+R_Izq = 100;                  % Penalización al control
 [Pd_Izq, ~, ~] = dare(Ad_Izq, Bd_Izq, Q_Izq, R_Izq);
 K_Izq = R_Izq \ (Bd_Izq' * Pd_Izq);       % Ganancia óptima discreta
 Kr_Izq = inv(C_Izq * inv(eye(2) - Ad_Izq + Bd_Izq*K_Izq) * Bd_Izq);  % Ganancia de referencia
 
-Q_Der = [0.001 0; 0 35];       % Penalización a estados
-R_Der = 10;                  % Penalización al control
+Q_Der = [0.001 0; 0 10];       % Penalización a estados
+R_Der = 100;                  % Penalización al control
 [Pd_Der, ~, ~] = dare(Ad_Der, Bd_Der, Q_Der, R_Der);
 K_Der = R_Der \ (Bd_Der' * Pd_Der);       % Ganancia óptima discreta
 Kr_Der = inv(C_Der * inv(eye(2) - Ad_Der + Bd_Der*K_Der) * Bd_Der);  % Ganancia de referencia
@@ -117,11 +117,11 @@ err_Der_plot = [];
 
 for t = 0:dt:S
     
-    wr_Izq = 2 + 5*cos(2*t+3);
-    wr_Der = 2 - 5*cos(2*t+3);
+    wr_Izq = 2 + 5*sin(t+1.5);
+    wr_Der = 2 - 5*sin(t+1.5);
 
-    z_Izq = H_K_Izq * x_Izq + 0.1*randn(2,1);
-    z_Der = H_K_Der * x_Der + 0.1*randn(2,1);
+    z_Izq = H_K_Izq * x_Izq + 0.05*randn(2,1);
+    z_Der = H_K_Der * x_Der + 0.05*randn(2,1);
 
     K_K_Izq = P_K_Izq * H_K_Izq' / (H_K_Izq * P_K_Izq * H_K_Izq' + R_K_Izq);
     x_Izq_hat = x_Izq_hat + K_K_Izq * (z_Izq - H_K_Izq * x_Izq_hat);
@@ -134,8 +134,8 @@ for t = 0:dt:S
     u_Izq = -K_Izq * x_Izq_hat + Kr_Izq * wr_Izq;
     u_Der = -K_Der * x_Der_hat + Kr_Der * wr_Der;
 
-    x_Izq = F_K_Izq * x_Izq + G_K_Izq * u_Izq + 0.05* randn(2,1);
-    x_Der = F_K_Der * x_Der + G_K_Der * u_Der + 0.05* randn(2,1);
+    x_Izq = F_K_Izq * x_Izq + G_K_Izq * u_Izq + 0.01* randn(2,1);
+    x_Der = F_K_Der * x_Der + G_K_Der * u_Der + 0.01* randn(2,1);
 
     x_Izq_hat = F_K_Izq * x_Izq_hat + G_K_Izq * u_Izq;
     P_K_Izq = F_K_Izq * P_K_Izq * F_K_Izq' + Q_K_Izq;
@@ -143,66 +143,43 @@ for t = 0:dt:S
     x_Der_hat = F_K_Der * x_Der_hat + G_K_Der * u_Der;
     P_K_Der = F_K_Der * P_K_Der * F_K_Der' + Q_K_Der;
 
-    x_Izq_plot = [x_Izq_plot, x_Izq];
-    x_Izq_hat_plot = [x_Izq_hat_plot, x_Izq_hat];
-    u_Izq_plot = [u_Izq_plot, u_Izq];
+    x_plot = [x_plot, x];
+    xhat_plot = [xhat_plot, x_hat];
+    u_plot = [u_plot, u];
     t_plot = [t_plot, t];
-    ref_Izq_plot = [ref_Izq_plot, wr_Izq];
-    err_Izq_plot = [err_Izq_plot, wr_Izq - x_Izq_hat(2)];
+    ref_plot = [ref_plot, wr];
+    err_plot = [err_plot, wr - x_hat(2)];
 
-    x_Der_plot = [x_Der_plot, x_Der];
-    x_Der_hat_plot = [x_Der_hat_plot, x_Der_hat];
-    u_Der_plot = [u_Der_plot, u_Der];
-    ref_Der_plot = [ref_Der_plot, wr_Der];
-    err_Der_plot = [err_Der_plot, wr_Der - x_Der_hat(2)];
+    x_plot = [x_plot, x];
+    xhat_plot = [xhat_plot, x_hat];
+    u_plot = [u_plot, u];
+ 
+    ref_plot = [ref_plot, wr];
+    err_plot = [err_plot, wr - x_hat(2)];
 end
 
 % ----------------- Gráficas -----------------
 
 figure;
 hold on; grid on;
-plot(t_plot, x_Izq_plot(2,:), 'LineWidth', 2);          % Velocidad real
-plot(t_plot, x_Izq_hat_plot(2,:), 'LineWidth', 2);       % Estimación velocidad
-plot(t_plot, ref_Izq_plot, 'k--', 'LineWidth', 2);      % Referencia
+plot(t_plot, x_plot(2,:), 'LineWidth', 2);          % Velocidad real
+plot(t_plot, xhat_plot(2,:), 'LineWidth', 2);       % Estimación velocidad
+plot(t_plot, ref_plot, 'k--', 'LineWidth', 2);      % Referencia
 legend("Velocidad real", "Estimación", "Referencia");
 xlabel("Tiempo (s)");
 ylabel("Velocidad (rad/s)");
-title("Seguimiento de referencia con LQR + Kalman - Motor Izquierdo");
+title("Seguimiento de referencia con LQR + Kalman");
 
 figure;
-plot(t_plot, u_Izq_plot, 'LineWidth', 2);
+plot(t_plot, u_plot, 'LineWidth', 2);
 grid on;
 xlabel("Tiempo (s)");
 ylabel("Voltaje (V)");
-title("Voltaje aplicado - Motor Izquierdo");
+title("Voltaje aplicado");
 
 figure;
-plot(t_plot, err_Izq_plot, 'LineWidth', 2);
+plot(t_plot, err_plot, 'LineWidth', 2);
 grid on;
 xlabel("Tiempo (s)");
 ylabel("Error (rad/s)");
-title("Error de seguimiento - Motor Izquierdo");
-
-figure;
-hold on; grid on;
-plot(t_plot, x_Der_plot(2,:), 'LineWidth', 2);          % Velocidad real
-plot(t_plot, x_Der_hat_plot(2,:), 'LineWidth', 2);       % Estimación velocidad
-plot(t_plot, ref_Der_plot, 'k--', 'LineWidth', 2);      % Referencia
-legend("Velocidad real", "Estimación", "Referencia");
-xlabel("Tiempo (s)");
-ylabel("Velocidad (rad/s)");
-title("Seguimiento de referencia con LQR + Kalman - Motor Derecho");
-
-figure;
-plot(t_plot, u_Der_plot, 'LineWidth', 2);
-grid on;
-xlabel("Tiempo (s)");
-ylabel("Voltaje (V)");
-title("Voltaje aplicado - Motor Derecho");
-
-figure;
-plot(t_plot, err_Der_plot, 'LineWidth', 2);
-grid on;
-xlabel("Tiempo (s)");
-ylabel("Error (rad/s)");
-title("Error de seguimiento - Motor Derecho");
+title("Error de seguimiento");
