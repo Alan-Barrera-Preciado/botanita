@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt     #Para graficar
 import serial                       #Para comunicacion serial
 import time                         #Para timeouts en comunicacion
 import pandas as pd                 #Para leer/escribir excel
+import os
+
+Carpeta_Actual = os.path.dirname(__file__)
 
 serialArduino = serial.Serial('COM4', 115200)
 time.sleep(2)
@@ -56,8 +59,11 @@ serialArduino.close()
 data_Izq = {'t':vector_tiempo,'Radianes':vector_radianes_Izq, 'Corriente':vector_corriente_Izq}
 data_Der = {'t':vector_tiempo,'Radianes':vector_radianes_Der, 'Corriente':vector_corriente_Der}
 
+Ruta_Izq = os.path.join(Carpeta_Actual, 'df_12v.csv')
+Ruta_Der = os.path.join(Carpeta_Actual, 'df_24v.csv')
+
 df_Izq = pd.DataFrame(data_Izq)
-df_Izq.to_csv('df_12v.csv',index=False)
+df_Izq.to_csv(Ruta_Izq,index=False)
 
 df_Der = pd.DataFrame(data_Der)
-df_Der.to_csv('df_24v.csv',index=False)
+df_Der.to_csv(Ruta_Der,index=False)
