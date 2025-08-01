@@ -1,2 +1,2 @@
-Control_Motores:control_motores
+control_motores
 -DCATKIN_DEVEL_PREFIX=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/install -G Unix Makefiles

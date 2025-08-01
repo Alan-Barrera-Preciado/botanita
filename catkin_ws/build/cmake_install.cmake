@@ -131,7 +131,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/gtest/cmake_install.cmake")
-  include("/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/Control_Motores/cmake_install.cmake")
   include("/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/cmake_install.cmake")
 
 endif()

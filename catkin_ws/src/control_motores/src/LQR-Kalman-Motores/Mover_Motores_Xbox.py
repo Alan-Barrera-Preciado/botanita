@@ -14,17 +14,17 @@ Ref_Der = 0
 def joy_callback(data):
     global Ref_Izq, Ref_Der
     if data.axes[7] > 0.8:
-        Ref_Izq = Ref_Izq + 0.5
+        Ref_Izq = max(Ref_Izq - 0.5, -15)
     if data.axes[7] < -0.8:
-        Ref_Izq = Ref_Izq - 0.5
+        Ref_Izq = min(Ref_Izq + 0.5, 15)
     if data.buttons[3] > 0.8:
-        Ref_Der = Ref_Der + 0.5
+        Ref_Der = min(Ref_Der + 0.5, 15)
     if data.buttons[0] > 0.8:
-        Ref_Der = Ref_Der - 0.5
+        Ref_Der = max(Ref_Der - 0.5, -15)
     if data.buttons[8] > 0.8:
         Ref_Izq = 0
         Ref_Der = 0
-    
+
     Ref = Float32MultiArray()
     Ref.data = [Ref_Izq, Ref_Der]
     pub.publish(Ref)
