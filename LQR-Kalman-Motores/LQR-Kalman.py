@@ -4,7 +4,7 @@ import serial                       #Para comunicacion serial
 import time                         #Para timeouts en comunicacion
 import pandas as pd                 #Para leer/escribir excel
 
-serialArduino = serial.Serial('COM4', 115200)
+serialArduino = serial.Serial('/dev/ttyACM0', 115200)
 time.sleep(2)
 dt=0.05
 
