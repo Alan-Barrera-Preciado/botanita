@@ -10,13 +10,13 @@ dt=0.05
 
 # ----------------- Espacio de estados discretizado (Motor Izquierda 12v) -----------------
 
-Ad_Izq = np.array([[0.6154, -0.0954], [0.4686, 0.6074]])
-Bd_Izq = np.array([[0.1575],[0.5362]])
+Ad_Izq = np.array([[0.000, -0.0102], [0.0008, 0.7115]])
+Bd_Izq = np.array([[0.0771],[0.4348]])
 
 # ----------------- Espacio de estados discretizado (Motor Derecha 24v) -----------------
 
-Ad_Der = np.array([[0.6154, -0.0954], [0.4686, 0.6074]])
-Bd_Der = np.array([[0.1575],[0.5362]])
+Ad_Der = np.array([[-0.0002, -0.0102], [0.0111, 0.7191]])
+Bd_Der = np.array([[0.0788],[0.3260]])
 
 C = np.array([0, 1])
 
@@ -26,9 +26,9 @@ Fk_Izq = Ad_Izq
 Gk_Izq = Bd_Izq
 Hk_Izq = np.eye(2,2)
 
-Pk_Izq = np.array([[0.1, 0],[0, 0.1]])
-Qk_Izq = np.array([[1e-4, 0],[0, 1e-3]])
-Rk_Izq = np.array([[1e-2, 0],[0, 1e-1]])
+Pk_Izq = np.array([[0.15, 0],[0, 0.75]])
+Qk_Izq = np.array([[15, 0],[0, 1.5e-4]])
+Rk_Izq = np.array([[7.5e-7, 0],[0, 9.5e-5]])
 
 x_hat_Izq = np.array([[0],[0]])
 
@@ -38,23 +38,23 @@ Fk_Der = Ad_Der
 Gk_Der = Bd_Der
 Hk_Der = np.eye(2,2)
 
-Pk_Der = np.array([[0.1, 0],[0, 0.1]])
-Qk_Der = np.array([[1e-4, 0],[0, 1e-3]])
-Rk_Der = np.array([[1e-2, 0],[0, 1e-1]])
+Pk_Der = np.array([[0.15, 0],[0, 1]])
+Qk_Der = np.array([[.15, 0],[0, 8.5e-2]])
+Rk_Der = np.array([[5e-3, 0],[0, 8.5e-1]])
 
 x_hat_Der = np.array([[0],[0]])
 
 # ----------------- LQR (Motor Izquierda 12v) -----------------
 
-K_Izq = np.array([0.2857, 1.0904])
-Kr_Izq = 1.8001
+K_Izq = np.array([0.0006, 1.9469])
+Kr_Izq = 2.6104
 
 u_Izq = 0
 
 # ----------------- LQR (Motor Derecha 24v) -----------------
 
-K_Der = np.array([0.2857, 1.0904])
-Kr_Der = 1.8001
+K_Der = np.array([0.0058, 0.9447])
+Kr_Der = 1.8046
 
 u_Der = 0
 
@@ -91,8 +91,8 @@ Tiempo = 0
 t = 0
 
 for t in range(N):
-    RadRef_Izq = 6.3
-    RadRef_Der = 6.3
+    RadRef_Izq = 6.3 - 6.3*np.exp(-t/5)
+    RadRef_Der = 6.3 - 6.3*np.exp(-t/5)
     time.sleep(dt)
     PWM_Izq = max(-12, min(12, u_Izq))
     PWM_Izq =  PWM_Izq/12 * 255
@@ -121,7 +121,7 @@ for t in range(N):
     x_hat_Izq = Fk_Izq @ x_hat_Izq + Gk_Izq * u_Izq
     Pk_Izq = Fk_Izq @ Pk_Izq @ Fk_Izq.T + Qk_Izq
 
-    Error_Izq = RadRef_Izq - x_hat_Izq[1,0]
+    Error_Izq = RadRef_Izq - x_Izq[1,0]
 
     x_Der = np.array([[Corriente_Der],[Rad_Der]])
     Kk_Der = Pk_Der @ Hk_Der.T @ np.linalg.pinv(Hk_Der @ Pk_Der @ Hk_Der.T + Rk_Der)
@@ -134,7 +134,7 @@ for t in range(N):
     x_hat_Der = Fk_Der @ x_hat_Der + Gk_Der * u_Der
     Pk_Der = Fk_Der @ Pk_Der @ Fk_Der.T + Qk_Der
 
-    Error_Der = RadRef_Der - x_hat_Der[1,0]
+    Error_Der = RadRef_Der - x_Der[1,0]
 
 
     PWM_Izq_plot.append(PWM_Izq)
@@ -169,13 +169,13 @@ fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
 ax1.plot(Tiempo_plot, xhat_Izq_plot, label='Estimacion Izquierda (Rad/s) ')
 ax1.plot(Tiempo_plot, Rad_Izq_plot, label='Medicion Izquierda (Rad/s) ')
 ax1.plot(Tiempo_plot, Referencia_Izq_plot, label='Referencia Izquierda (Rad/s) ')
-ax1.legend(loc='upper left')
+ax1.legend(loc='lower left')
 ax1.set_ylabel('Velocidad (Rad/s)')
 
 ax2.plot(Tiempo_plot, xhat_Der_plot, label='Estimacion Derecha (Rad/s) ')
 ax2.plot(Tiempo_plot, Rad_Der_plot, label='Medicion Derecha (Rad/s) ')
 ax2.plot(Tiempo_plot, Referencia_Der_plot, label='Referencia Derecha (Rad/s) ')
-ax2.legend(loc='upper left')
+ax2.legend(loc='lower left')
 ax2.set_ylabel('Velocidad (Rad/s)')
 
 fig, (ax3, ax4) = plt.subplots(2, 1, figsize=(8, 6))
@@ -197,7 +197,7 @@ ax5.legend(loc='upper left')
 ax5.set_ylabel('Voltaje (V)')
 ax5.set_xlabel('Tiempo')
 
-ax6.plot(Tiempo_plot, u_Der_plot, label='Control Izquierda (V)')
+ax6.plot(Tiempo_plot, u_Der_plot, label='Control Derecha (V)')
 ax6.legend(loc='upper left')
 ax6.set_ylabel('Voltaje (V)')
 ax6.set_xlabel('Tiempo')
@@ -217,5 +217,17 @@ ax8.plot(Tiempo_plot, x2hat_Der_plot, label='Estimacion corriente Derecha (A)')
 ax8.plot(Tiempo_plot, Corriente_Der_plot, label= 'Corriente medida Derecha (A)')
 ax8.legend(loc='upper left')
 ax8.set_ylabel('Velocidad (Rad/s)')
+
+fig, (ax9, ax10) = plt.subplots(2, 1, figsize=(8, 6))
+
+ax9.plot(Tiempo_plot, Error_Izq_plot, label='Error Izquierda (Rad/s)')
+ax9.legend(loc='upper left')
+ax9.set_ylabel('Error')
+ax9.set_xlabel('Tiempo')
+
+ax10.plot(Tiempo_plot, Error_Der_plot, label='Error Derecha (Rad/s)')
+ax10.legend(loc='upper left')
+ax10.set_ylabel('Error')
+ax10.set_xlabel('Tiempo')
 
 plt.show()

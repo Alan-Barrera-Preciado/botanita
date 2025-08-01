@@ -58,14 +58,14 @@ Bd_Der = sys_d_Der.B;
 
 % ----------------- LQR discreto -----------------
 
-Q_Izq = [0.001 0; 0 20];       % Penalización a estados
-R_Izq = 15;                  % Penalización al control
+Q_Izq = [0.0001 0; 0 6.5];       % Penalización a estados
+R_Izq = 2.0;                  % Penalización al control
 [Pd_Izq, ~, ~] = dare(Ad_Izq, Bd_Izq, Q_Izq, R_Izq);
 K_Izq = R_Izq \ (Bd_Izq' * Pd_Izq);       % Ganancia óptima discreta
 Kr_Izq = inv(C_Izq * inv(eye(2) - Ad_Izq + Bd_Izq*K_Izq) * Bd_Izq);  % Ganancia de referencia
 
-Q_Der = [0.001 0; 0 35];       % Penalización a estados
-R_Der = 10;                  % Penalización al control
+Q_Der = [0.001 0; 0 3.5];       % Penalización a estados
+R_Der = 2;                  % Penalización al control
 [Pd_Der, ~, ~] = dare(Ad_Der, Bd_Der, Q_Der, R_Der);
 K_Der = R_Der \ (Bd_Der' * Pd_Der);       % Ganancia óptima discreta
 Kr_Der = inv(C_Der * inv(eye(2) - Ad_Der + Bd_Der*K_Der) * Bd_Der);  % Ganancia de referencia
@@ -85,10 +85,10 @@ F_K_Der = Ad_Der;
 G_K_Der = Bd_Der;
 H_K_Der = eye(2);             % Se observan corriente y velocidad
 x_Der_hat = [0; 0];           % Estimación inicial
-P_K_Der = diag([0.01, 0.05]);             % Covarianza inicial
+P_K_Der = diag([0.15, 1]);             % Covarianza inicial
 
-Q_K_Der = diag([0.00001, 0.000001]);  % Ruido de proceso
-R_K_Der = diag([0.1, 10]); % Ruido de medición
+Q_K_Der = diag([15, 8.5e-4]);  % Ruido de proceso
+R_K_Der = diag([5e-5, 8.5e-4]); % Ruido de medición
 
 
 % ----------------- Variables iniciales -----------------
@@ -118,7 +118,7 @@ err_Der_plot = [];
 for t = 0:dt:S
     
     wr_Izq = 2 + 5*cos(2*t+3);
-    wr_Der = 2 - 5*cos(2*t+3);
+    wr_Der = 6.3-6.3*exp(-t);
 
     z_Izq = H_K_Izq * x_Izq + 0.1*randn(2,1);
     z_Der = H_K_Der * x_Der + 0.1*randn(2,1);

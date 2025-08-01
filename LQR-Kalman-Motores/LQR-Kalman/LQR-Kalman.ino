@@ -21,13 +21,13 @@ int Direccion_Izq = 1;
 int Direccion_Der = 1;
 
 // Sensor de corriente
-float suma_corriente_Izq = 0;
-float corriente_promedio_Izq = 0;
+float Suma_Corriente_Izq = 0;
+float Corriente_Promedio_Izq = 0;
 int lecturaCorriente_Izq = 0;
 float Corriente_Izq = 0;
 
-float suma_corriente_Der = 0;
-float corriente_promedio_Der = 0;
+float Suma_Corriente_Der = 0;
+float Corriente_Promedio_Der = 0;
 int lecturaCorriente_Der = 0;
 float Corriente_Der = 0;
 
@@ -129,8 +129,8 @@ void EnviarDatos() {
   if(Direccion_Der == 1){
     RPM_Der = RPM_Der*-1;
   }
-  Corriente_Izq = ina226_Izq.getCurrent_mA();
-  Corriente_Der = ina226_Der.getCurrent_mA();
+  Corriente_Izq = PromedioCorriente_Izq();
+  Corriente_Der = PromedioCorriente_Der();
   Serial.print(RPM_Izq);
   Serial.print(",");
   Serial.print(Corriente_Izq);
@@ -162,4 +162,22 @@ float CalcularRPM_Der(){
   RPM_Der = (PulsosIntervalo_Der/dt_Der)*60/750;
   interrupts();
   return RPM_Der;
+}
+
+int PromedioCorriente_Izq() {
+  for (int i = 0; i < 64; i++) {
+    Suma_Corriente_Izq += ina226_Izq.getCurrent_mA();;
+  }
+  Corriente_Promedio_Izq = Suma_Corriente_Izq / 64.0;
+  Suma_Corriente_Izq = 0;
+  return (int)Corriente_Promedio_Izq;
+}
+
+int PromedioCorriente_Der() {
+  for (int i = 0; i < 64; i++) {
+    Suma_Corriente_Der += ina226_Der.getCurrent_mA();;
+  }
+  Corriente_Promedio_Der = Suma_Corriente_Der / 64.0;
+  Suma_Corriente_Der = 0;
+  return (int)Corriente_Promedio_Der;
 }
