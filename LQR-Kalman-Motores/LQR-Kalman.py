@@ -28,7 +28,7 @@ Hk_Izq = np.eye(2,2)
 
 Pk_Izq = np.array([[0.15, 0],[0, 0.75]])
 Qk_Izq = np.array([[15, 0],[0, 1.5e-4]])
-Rk_Izq = np.array([[7.5e-7, 0],[0, 9.5e-5]])
+Rk_Izq = np.array([[7.5e-7, 0],[0, 9.5e-4]])
 
 x_hat_Izq = np.array([[0],[0]])
 
@@ -39,8 +39,8 @@ Gk_Der = Bd_Der
 Hk_Der = np.eye(2,2)
 
 Pk_Der = np.array([[0.15, 0],[0, 1]])
-Qk_Der = np.array([[.15, 0],[0, 8.5e-2]])
-Rk_Der = np.array([[5e-3, 0],[0, 8.5e-1]])
+Qk_Der = np.array([[15, 0],[0, 8.5e-4]])
+Rk_Der = np.array([[5e-5, 0],[0, 8.5e-4]])
 
 x_hat_Der = np.array([[0],[0]])
 
