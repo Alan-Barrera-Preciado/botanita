@@ -1,0 +1,8 @@
+prefix=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel
+
+Name: Control_Motores
+Description: Description of Control_Motores
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
