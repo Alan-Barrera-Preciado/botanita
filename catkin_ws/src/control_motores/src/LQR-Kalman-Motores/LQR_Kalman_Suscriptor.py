@@ -219,6 +219,7 @@ def main():
     ax2.legend(loc='lower left')
     ax2.set_ylabel('Velocidad (Rad/s)')
     
+    plt.show()
     plt.savefig("Motores_Referencia.png")
 
 if __name__ == '__main__':
