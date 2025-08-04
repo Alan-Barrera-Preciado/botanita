@@ -14,8 +14,8 @@ int RPM_Der = 0;
 
 int Encoder_Izq = 2;
 int Encoder_Der = 3;
-int Resolucion_Izq = 750;
-int Resolucion_Der = 750;
+int Resolucion_Izq = 800;
+int Resolucion_Der = 700;
 volatile byte Pulsos_Izq = 0;
 volatile byte Pulsos_Der = 0;
 int PulsosIntervalo_Izq = 0;

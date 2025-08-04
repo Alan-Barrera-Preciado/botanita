@@ -147,7 +147,7 @@ float CalcularRPM_Izq(){
   noInterrupts();
   PulsosIntervalo_Izq = Pulsos_Izq;
   Pulsos_Izq = 0;
-  RPM_Izq = (PulsosIntervalo_Izq/dt_Izq)*60/750;
+  RPM_Izq = (PulsosIntervalo_Izq/dt_Izq)*60/800;
   interrupts();
   return RPM_Izq;
 }
@@ -159,7 +159,7 @@ float CalcularRPM_Der(){
   noInterrupts();
   PulsosIntervalo_Der = Pulsos_Der;
   Pulsos_Der = 0;
-  RPM_Der = (PulsosIntervalo_Der/dt_Der)*60/750;
+  RPM_Der = (PulsosIntervalo_Der/dt_Der)*60/700;
   interrupts();
   return RPM_Der;
 }

@@ -4,19 +4,19 @@ import serial                       #Para comunicacion serial
 import time                         #Para timeouts en comunicacion
 import pandas as pd                 #Para leer/escribir excel
 
-serialArduino = serial.Serial('/dev/ttyACM0', 115200)
+serialArduino = serial.Serial('COM4', 115200)
 time.sleep(2)
 dt=0.05
 
 # ----------------- Espacio de estados discretizado (Motor Izquierda 12v) -----------------
 
-Ad_Izq = np.array([[0.000, -0.0102], [0.0008, 0.7115]])
-Bd_Izq = np.array([[0.0771],[0.4348]])
+Ad_Izq = np.array([[-0.0017, -0.0161], [0.0744, 0.7237]])
+Bd_Izq = np.array([[0.0760],[0.3376]])
 
 # ----------------- Espacio de estados discretizado (Motor Derecha 24v) -----------------
 
-Ad_Der = np.array([[-0.0002, -0.0102], [0.0111, 0.7191]])
-Bd_Der = np.array([[0.0788],[0.3260]])
+Ad_Der = np.array([[0.0091, 0.0007], [-0.0277, 0.0054]])
+Bd_Der = np.array([[0.0646],[1.1928]])
 
 C = np.array([0, 1])
 
@@ -27,8 +27,8 @@ Gk_Izq = Bd_Izq
 Hk_Izq = np.eye(2,2)
 
 Pk_Izq = np.array([[0.15, 0],[0, 0.75]])
-Qk_Izq = np.array([[15, 0],[0, 1.5e-4]])
-Rk_Izq = np.array([[7.5e-7, 0],[0, 9.5e-4]])
+Qk_Izq = np.array([[5.0e-2, 0],[0, 1.5e-5]])
+Rk_Izq = np.array([[7.5e-9, 0],[0, 9.5e-4]])
 
 x_hat_Izq = np.array([[0],[0]])
 
@@ -39,22 +39,22 @@ Gk_Der = Bd_Der
 Hk_Der = np.eye(2,2)
 
 Pk_Der = np.array([[0.15, 0],[0, 1]])
-Qk_Der = np.array([[15, 0],[0, 8.5e-4]])
-Rk_Der = np.array([[5e-5, 0],[0, 8.5e-4]])
+Qk_Der = np.array([[1.5e-1, 0],[0, 8.5e-3]])
+Rk_Der = np.array([[5e-3, 0],[0, 8.5e-4]])
 
 x_hat_Der = np.array([[0],[0]])
 
 # ----------------- LQR (Motor Izquierda 12v) -----------------
 
-K_Izq = np.array([0.0006, 1.9469])
-Kr_Izq = 2.6104
+K_Izq = np.array([0.0187, 0.3890])
+Kr_Izq = 1.1983
 
 u_Izq = 0
 
 # ----------------- LQR (Motor Derecha 24v) -----------------
 
-K_Der = np.array([0.0058, 0.9447])
-Kr_Der = 1.8046
+K_Der = np.array([-0.0000, 0.1022])
+Kr_Der = 0.9374
 
 u_Der = 0
 
@@ -66,7 +66,7 @@ Pk_Izq = Fk_Izq @ Pk_Izq @ Fk_Izq.T + Qk_Izq
 x_hat_Der = Fk_Der @ x_hat_Der + Gk_Der * u_Der
 Pk_Der = Fk_Der @ Pk_Der @ Fk_Der.T + Qk_Der
 
-N = 200
+N = 100
 
 # ----------------- Graficas -----------------
 
@@ -91,8 +91,12 @@ Tiempo = 0
 t = 0
 
 for t in range(N):
-    RadRef_Izq = 6.3 - 6.3*np.exp(-t/5)
-    RadRef_Der = 6.3 - 6.3*np.exp(-t/5)
+
+    RadRef_Izq = 2 + 5*np.sin(t/10)
+    RadRef_Der = 2 + 5*np.sin(t/10)
+
+    # RadRef_Izq = 6.3 - 6.3*np.exp(-t/5)
+    # RadRef_Der = 6.3 - 6.3*np.exp(-t/5)
     time.sleep(dt)
     PWM_Izq = max(-12, min(12, u_Izq))
     PWM_Izq =  PWM_Izq/12 * 255
@@ -202,21 +206,21 @@ ax6.legend(loc='upper left')
 ax6.set_ylabel('Voltaje (V)')
 ax6.set_xlabel('Tiempo')
 
-fig, (ax7, ax8) = plt.subplots(2, 1, figsize=(8, 6))
+#fig, (ax7, ax8) = plt.subplots(2, 1, figsize=(8, 6))
 
-ax7.plot(Tiempo_plot, xhat_Izq_plot, label='Estimacion Izquierda (Rad/s) ')
-ax7.plot(Tiempo_plot, Rad_Izq_plot, label='Medicion Izquierda (Rad/s) ')
-ax7.plot(Tiempo_plot, xhat_Der_plot, label='Estimacion Derecha (Rad/s) ')
-ax7.plot(Tiempo_plot, Rad_Der_plot, label='Medicion Derecha (Rad/s) ')
-ax7.legend(loc='upper left')
-ax7.set_ylabel('Velocidad (Rad/s)')
+#ax7.plot(Tiempo_plot, xhat_Izq_plot, label='Estimacion Izquierda (Rad/s) ')
+#ax7.plot(Tiempo_plot, Rad_Izq_plot, label='Medicion Izquierda (Rad/s) ')
+#ax7.plot(Tiempo_plot, xhat_Der_plot, label='Estimacion Derecha (Rad/s) ')
+#ax7.plot(Tiempo_plot, Rad_Der_plot, label='Medicion Derecha (Rad/s) ')
+#ax7.legend(loc='upper left')
+#ax7.set_ylabel('Velocidad (Rad/s)')
 
-ax8.plot(Tiempo_plot, x2hat_Izq_plot, label='Estimacion corriente Izquierda (A)')
-ax8.plot(Tiempo_plot, Corriente_Izq_plot, label= 'Corriente medida Izquierda (A)')
-ax8.plot(Tiempo_plot, x2hat_Der_plot, label='Estimacion corriente Derecha (A)')
-ax8.plot(Tiempo_plot, Corriente_Der_plot, label= 'Corriente medida Derecha (A)')
-ax8.legend(loc='upper left')
-ax8.set_ylabel('Velocidad (Rad/s)')
+#ax8.plot(Tiempo_plot, x2hat_Izq_plot, label='Estimacion corriente Izquierda (A)')
+#ax8.plot(Tiempo_plot, Corriente_Izq_plot, label= 'Corriente medida Izquierda (A)')
+#ax8.plot(Tiempo_plot, x2hat_Der_plot, label='Estimacion corriente Derecha (A)')
+#ax8.plot(Tiempo_plot, Corriente_Der_plot, label= 'Corriente medida Derecha (A)')
+#ax8.legend(loc='upper left')
+#ax8.set_ylabel('Velocidad (Rad/s)')
 
 fig, (ax9, ax10) = plt.subplots(2, 1, figsize=(8, 6))
 

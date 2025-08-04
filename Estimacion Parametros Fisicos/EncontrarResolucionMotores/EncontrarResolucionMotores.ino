@@ -2,13 +2,13 @@ volatile long Pulsos = 0;
 bool Contando = false;
 int PWM = 100;
 
-const int encoderPin = 16;
-const int pwmPin = 15;
-const int pwmChannel = 0;
-const int pwmFreq = 5000;
-const int pwmResolution = 8;
+// Izquierdo Resolucion = 800
+// Derecho Resolucion = 700
 
-void IRAM_ATTR Contador() {
+const int encoderPin = 3;
+const int pwmPin = 9;
+
+void Contador() {
   if (Contando) {
     Pulsos++;
   }
@@ -18,14 +18,11 @@ void setup() {
   Serial.begin(9600);
 
   pinMode(encoderPin, INPUT_PULLUP);
+  pinMode(pwmPin, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(encoderPin), Contador, RISING);
 
-  ledcSetup(pwmChannel, pwmFreq, pwmResolution);
-  ledcAttachPin(pwmPin, pwmChannel);
-  ledcWrite(pwmChannel, 0);
-
   Serial.println("Escribe 'inicio' para comenzar. El motor girará lentamente.");
-  Serial.println("Cuando dé 100 vueltas, escribe 'fin' para calcular la resolución.");
+  Serial.println("Cuando dé 10 vueltas, escribe 'fin' para calcular la resolución.");
 }
 
 void loop() {
@@ -36,14 +33,14 @@ void loop() {
     if (comando.equalsIgnoreCase("inicio")) {
       Pulsos = 0;
       Contando = true;
-      ledcWrite(pwmChannel, PWM);
+      analogWrite(pwmPin, 100);
       Serial.println("Contando pulsos... Escribe 'fin' cuando dé 100 vueltas.");
     }
     else if (comando.equalsIgnoreCase("fin")) {
       Contando = false;
-      ledcWrite(pwmChannel, 0);
+      analogWrite(pwmPin, 0);
 
-      float Resolucion = (float)Pulsos / 100.0;
+      float Resolucion = (float)Pulsos / 10.0;
       Serial.println("---------- RESULTADO ----------");
       Serial.print("Pulsos totales contados: ");
       Serial.println(Pulsos);

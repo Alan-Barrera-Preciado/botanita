@@ -83,6 +83,7 @@ save('ParametrosEstimadosMotorDerecho.mat', 'p_Der');
 X_Izq = motor_simulate(p_Izq,t,u_Izq, Corriente_Real_Izq, Velocidad_Real_Izq); %Modelo Nuevo
 X_Der = motor_simulate(p_Der,t,u_Der, Corriente_Real_Der, Velocidad_Real_Der);
 
+%%
 
 figure(1)
 hold on

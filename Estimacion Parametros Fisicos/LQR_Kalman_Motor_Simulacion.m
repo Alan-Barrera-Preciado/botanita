@@ -47,28 +47,28 @@ S = 10;                  % Tiempo total de simulación
 sys_c_Izq = ss(A_Izq, B_Izq, C_Izq, D_Izq);
 sys_d_Izq = c2d(sys_c_Izq, dt, 'zoh');
 
-Ad_Izq = sys_d_Izq.A;
-Bd_Izq = sys_d_Izq.B;
+Ad_Izq = sys_d_Izq.A
+Bd_Izq = sys_d_Izq.B
 
 sys_c_Der = ss(A_Der, B_Der, C_Der, D_Der);
 sys_d_Der = c2d(sys_c_Der, dt, 'zoh');
 
-Ad_Der = sys_d_Der.A;
-Bd_Der = sys_d_Der.B;
+Ad_Der = sys_d_Der.A
+Bd_Der = sys_d_Der.B
 
 % ----------------- LQR discreto -----------------
 
-Q_Izq = [0.0001 0; 0 6.5];       % Penalización a estados
-R_Izq = 2.0;                  % Penalización al control
+Q_Izq = [0.00001 0; 0 17.5];       % Penalización a estados
+R_Izq = 28.5;                  % Penalización al control
 [Pd_Izq, ~, ~] = dare(Ad_Izq, Bd_Izq, Q_Izq, R_Izq);
-K_Izq = R_Izq \ (Bd_Izq' * Pd_Izq);       % Ganancia óptima discreta
-Kr_Izq = inv(C_Izq * inv(eye(2) - Ad_Izq + Bd_Izq*K_Izq) * Bd_Izq);  % Ganancia de referencia
+K_Izq = R_Izq \ (Bd_Izq' * Pd_Izq)      % Ganancia óptima discreta
+Kr_Izq = inv(C_Izq * inv(eye(2) - Ad_Izq + Bd_Izq*K_Izq) * Bd_Izq)  % Ganancia de referencia
 
-Q_Der = [0.001 0; 0 3.5];       % Penalización a estados
-R_Der = 2;                  % Penalización al control
+Q_Der = [0.0001 0; 0 1.5];       % Penalización a estados
+R_Der = 17.5;                  % Penalización al control
 [Pd_Der, ~, ~] = dare(Ad_Der, Bd_Der, Q_Der, R_Der);
-K_Der = R_Der \ (Bd_Der' * Pd_Der);       % Ganancia óptima discreta
-Kr_Der = inv(C_Der * inv(eye(2) - Ad_Der + Bd_Der*K_Der) * Bd_Der);  % Ganancia de referencia
+K_Der = R_Der \ (Bd_Der' * Pd_Der)       % Ganancia óptima discreta
+Kr_Der = inv(C_Der * inv(eye(2) - Ad_Der + Bd_Der*K_Der) * Bd_Der)  % Ganancia de referencia
 
 % ----------------- Filtro de Kalman discreto -----------------
 
@@ -78,7 +78,7 @@ H_K_Izq = eye(2);             % Se observan corriente y velocidad
 x_Izq_hat = [0; 0];           % Estimación inicial
 P_K_Izq = diag([0.01, 0.05]);             % Covarianza inicial
 
-Q_K_Izq = diag([0.00001, 0.000001]);  % Ruido de proceso
+Q_K_Izq = diag([0.0, 0.0]);  % Ruido de proceso
 R_K_Izq = diag([0.1, 10]); % Ruido de medición
 
 F_K_Der = Ad_Der;
@@ -118,10 +118,10 @@ err_Der_plot = [];
 for t = 0:dt:S
     
     wr_Izq = 2 + 5*cos(2*t+3);
-    wr_Der = 6.3-6.3*exp(-t);
+    wr_Der = 2 + 5*cos(2*t+3);
 
-    z_Izq = H_K_Izq * x_Izq + 0.1*randn(2,1);
-    z_Der = H_K_Der * x_Der + 0.1*randn(2,1);
+    z_Izq = H_K_Izq * x_Izq + 0.05*randn(2,1);
+    z_Der = H_K_Der * x_Der + 0.05*randn(2,1);
 
     K_K_Izq = P_K_Izq * H_K_Izq' / (H_K_Izq * P_K_Izq * H_K_Izq' + R_K_Izq);
     x_Izq_hat = x_Izq_hat + K_K_Izq * (z_Izq - H_K_Izq * x_Izq_hat);
@@ -156,7 +156,7 @@ for t = 0:dt:S
     ref_Der_plot = [ref_Der_plot, wr_Der];
     err_Der_plot = [err_Der_plot, wr_Der - x_Der_hat(2)];
 end
-
+ %% 
 % ----------------- Gráficas -----------------
 
 figure;
