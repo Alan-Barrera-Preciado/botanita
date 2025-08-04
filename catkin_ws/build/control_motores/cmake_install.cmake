@@ -1,8 +1,8 @@
-# Install script for directory: /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores
+# Install script for directory: /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/install")
+  set(CMAKE_INSTALL_PREFIX "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -38,17 +38,17 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/catkin_generated/installspace/control_motores.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/catkin_generated/installspace/control_motores.pc")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/control_motores/cmake" TYPE FILE FILES
-    "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/catkin_generated/installspace/control_motoresConfig.cmake"
-    "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/catkin_generated/installspace/control_motoresConfig-version.cmake"
+    "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/catkin_generated/installspace/control_motoresConfig.cmake"
+    "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/catkin_generated/installspace/control_motoresConfig-version.cmake"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/control_motores" TYPE FILE FILES "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/control_motores" TYPE FILE FILES "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores/package.xml")
 endif()
 

@@ -7,4 +7,7 @@
 # new environment variables
 
 # modified environment variables
-export PWD='/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build'
+export CMAKE_PREFIX_PATH="/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel:$CMAKE_PREFIX_PATH"
+export PWD='/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build'
+export ROSLISP_PACKAGE_DIRECTORIES="/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
+export ROS_PACKAGE_PATH="/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src:$ROS_PACKAGE_PATH"

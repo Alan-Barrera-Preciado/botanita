@@ -1,4 +1,4 @@
-prefix=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/install
+prefix=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/install
 
 Name: control_motores
 Description: Description of control_motores

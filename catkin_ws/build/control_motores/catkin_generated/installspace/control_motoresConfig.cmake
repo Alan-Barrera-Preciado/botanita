@@ -67,14 +67,14 @@ set(control_motores_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(control_motores_SOURCE_PREFIX /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores)
-  set(control_motores_DEVEL_PREFIX /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel)
+  set(control_motores_SOURCE_PREFIX /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores)
+  set(control_motores_DEVEL_PREFIX /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel)
   set(control_motores_INSTALL_PREFIX "")
   set(control_motores_PREFIX ${control_motores_DEVEL_PREFIX})
 else()
   set(control_motores_SOURCE_PREFIX "")
   set(control_motores_DEVEL_PREFIX "")
-  set(control_motores_INSTALL_PREFIX /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/install)
+  set(control_motores_INSTALL_PREFIX /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/install)
   set(control_motores_PREFIX ${control_motores_INSTALL_PREFIX})
 endif()
 
@@ -118,7 +118,7 @@ endif()
 
 set(libraries "")
 foreach(library ${libraries})
-  # keep build configuration keywords, target names and absolute libraries as-is
+  # keep build configuration keywords, generator expressions, target names, and absolute libraries as-is
   if("${library}" MATCHES "^(debug|optimized|general)$")
     list(APPEND control_motores_LIBRARIES ${library})
   elseif(${library} MATCHES "^-l")
@@ -146,6 +146,8 @@ foreach(library ${libraries})
       target_link_options("${interface_target_name}" INTERFACE "${library}")
     endif()
     list(APPEND control_motores_LIBRARIES "${interface_target_name}")
+  elseif(${library} MATCHES "^\\$<")
+    list(APPEND control_motores_LIBRARIES ${library})
   elseif(TARGET ${library})
     list(APPEND control_motores_LIBRARIES ${library})
   elseif(IS_ABSOLUTE ${library})
@@ -154,7 +156,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/install/lib;/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel/lib;/home/modularpc/Prototipo_ws/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/install/lib;/home/botanita/catkin_ws/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

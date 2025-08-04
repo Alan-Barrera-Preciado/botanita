@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import numpy as np                  #Para operaciones matematicas
-import matplotlib.pyplot as plt     #Para graficar
 import serial                       #Para comunicacion serial
 import time                         #Para timeouts en comunicacion
 import pandas as pd                 #Para leer/escribir excel
@@ -16,13 +15,13 @@ def callback_ref(msg):
 def main():
     global Ref_Izq, Ref_Der
     
-    rospy.init_node('Controlador_Motores')
-    rospy.Suscriber('/Vel_Referencia', Float32MultiArray, callback_ref)
+    rospy.init_node('controlador_motores')
+    rospy.Subscriber('/vel_referencia', Float32MultiArray, callback_ref)
+    dt = 0.05
     rate = rospy.Rate(1/dt) 
    
     serialArduino = serial.Serial('/dev/ttyACM0', 115200)
     time.sleep(2)
-    dt=0.05
 
 # ----------------- Espacio de estados discretizado (Motor Izquierda 12v) -----------------
 
@@ -107,8 +106,9 @@ def main():
     Tiempo = 0
     t = 0
 
-    while not rospy.is_shutdown()
+    while not rospy.is_shutdown():
         try:
+            print("Referencia recibida:", Ref_Izq, Ref_Der)
             RadRef_Izq = Ref_Izq
             RadRef_Der = Ref_Der
             PWM_Izq = max(-12, min(12, u_Izq))
@@ -184,74 +184,6 @@ def main():
     cad = f"{0},{0}\n"
     serialArduino.write(cad.encode('ascii'))
     serialArduino.close()
-
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
-
-    ax1.plot(Tiempo_plot, xhat_Izq_plot, label='Estimacion Izquierda (Rad/s) ')
-    ax1.plot(Tiempo_plot, Rad_Izq_plot, label='Medicion Izquierda (Rad/s) ')
-    ax1.plot(Tiempo_plot, Referencia_Izq_plot, label='Referencia Izquierda (Rad/s) ')
-    ax1.legend(loc='lower left')
-    ax1.set_ylabel('Velocidad (Rad/s)')
-
-    ax2.plot(Tiempo_plot, xhat_Der_plot, label='Estimacion Derecha (Rad/s) ')
-    ax2.plot(Tiempo_plot, Rad_Der_plot, label='Medicion Derecha (Rad/s) ')
-    ax2.plot(Tiempo_plot, Referencia_Der_plot, label='Referencia Derecha (Rad/s) ')
-    ax2.legend(loc='lower left')
-    ax2.set_ylabel('Velocidad (Rad/s)')
-
-    fig, (ax3, ax4) = plt.subplots(2, 1, figsize=(8, 6))
-
-    ax3.plot(Tiempo_plot, x2hat_Izq_plot, label='Estimacion corriente Izquierda (A)')
-    ax3.plot(Tiempo_plot, Corriente_Izq_plot, label= 'Corriente medida Izquierda (A)')
-    ax3.legend(loc='upper left')
-    ax3.set_ylabel('Corriente (A)')
-
-    ax4.plot(Tiempo_plot, x2hat_Der_plot, label='Estimacion corriente Derecha (A)')
-    ax4.plot(Tiempo_plot, Corriente_Der_plot, label= 'Corriente medida Derecha (A)')
-    ax4.legend(loc='upper left')
-    ax4.set_ylabel('Corriente (A)')
-
-    fig, (ax5, ax6) = plt.subplots(2, 1, figsize=(8, 6))
-
-    ax5.plot(Tiempo_plot, u_Izq_plot, label='Control Izquierda (V)')
-    ax5.legend(loc='upper left')
-    ax5.set_ylabel('Voltaje (V)')
-    ax5.set_xlabel('Tiempo')
-
-    ax6.plot(Tiempo_plot, u_Der_plot, label='Control Derecha (V)')
-    ax6.legend(loc='upper left')
-    ax6.set_ylabel('Voltaje (V)')
-    ax6.set_xlabel('Tiempo')
-
-    fig, (ax7, ax8) = plt.subplots(2, 1, figsize=(8, 6))
-
-    ax7.plot(Tiempo_plot, xhat_Izq_plot, label='Estimacion Izquierda (Rad/s) ')
-    ax7.plot(Tiempo_plot, Rad_Izq_plot, label='Medicion Izquierda (Rad/s) ')
-    ax7.plot(Tiempo_plot, xhat_Der_plot, label='Estimacion Derecha (Rad/s) ')
-    ax7.plot(Tiempo_plot, Rad_Der_plot, label='Medicion Derecha (Rad/s) ')
-    ax7.legend(loc='upper left')
-    ax7.set_ylabel('Velocidad (Rad/s)')
-
-    ax8.plot(Tiempo_plot, x2hat_Izq_plot, label='Estimacion corriente Izquierda (A)')
-    ax8.plot(Tiempo_plot, Corriente_Izq_plot, label= 'Corriente medida Izquierda (A)')
-    ax8.plot(Tiempo_plot, x2hat_Der_plot, label='Estimacion corriente Derecha (A)')
-    ax8.plot(Tiempo_plot, Corriente_Der_plot, label= 'Corriente medida Derecha (A)')
-    ax8.legend(loc='upper left')
-    ax8.set_ylabel('Velocidad (Rad/s)')
-
-    fig, (ax9, ax10) = plt.subplots(2, 1, figsize=(8, 6))
-
-    ax9.plot(Tiempo_plot, Error_Izq_plot, label='Error Izquierda (Rad/s)')
-    ax9.legend(loc='upper left')
-    ax9.set_ylabel('Error')
-    ax9.set_xlabel('Tiempo')
-
-    ax10.plot(Tiempo_plot, Error_Der_plot, label='Error Derecha (Rad/s)')
-    ax10.legend(loc='upper left')
-    ax10.set_ylabel('Error')
-    ax10.set_xlabel('Tiempo')
-
-    plt.show()
 
 if __name__ == '__main__':
     main()

@@ -1,9 +1,8 @@
 # CMake generated Testfile for 
-# Source directory: /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src
-# Build directory: /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build
+# Source directory: /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src
+# Build directory: /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build
 # 
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
 subdirs("gtest")
-subdirs("Control_Motores")
 subdirs("control_motores")
