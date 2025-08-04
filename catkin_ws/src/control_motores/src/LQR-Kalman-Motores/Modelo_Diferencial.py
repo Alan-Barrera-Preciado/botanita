@@ -10,20 +10,26 @@ pub = rospy.Publisher('/vel_referencia',
 rate = rospy.Rate(20)  # 50 ms
 Ref_Izq = 0
 Ref_Der = 0
+Vel_Lineal = 0
+Vel_Angular = 0
 
 def joy_callback(data):
-    global Ref_Izq, Ref_Der
+    global Ref_Izq, Ref_Der, Vel_Lineal, Vel_Angular
+
     if data.axes[7] > 0.8:
-        Ref_Izq = max(Ref_Izq - 0.5, -15)
+        Vel_Lineal = Vel_Lineal + 0.1
     if data.axes[7] < -0.8:
-        Ref_Izq = min(Ref_Izq + 0.5, 15)
+        Vel_Lineal = Vel_Lineal - 0.1
     if data.buttons[3] > 0.8:
-        Ref_Der = min(Ref_Der + 0.5, 15)
+        Vel_Angular = Vel_Angular + 0.05
     if data.buttons[0] > 0.8:
-        Ref_Der = max(Ref_Der - 0.5, -15)
+        Vel_Angular = Vel_Angular - 0.
     if data.buttons[8] > 0.8:
-        Ref_Izq = 0
-        Ref_Der = 0
+        Vel_Angular = 0
+        Vel_Lineal = 0
+
+    Ref_Izq = max(min((2*Vel_Lineal - Vel_Angular * 60)/(16), 12), -12)
+    Ref_Der = max(min((2*Vel_Lineal - Vel_Angular * 60)/(16), 12), -12)
 
     Ref = Float32MultiArray()
     Ref.data = [Ref_Izq, Ref_Der]

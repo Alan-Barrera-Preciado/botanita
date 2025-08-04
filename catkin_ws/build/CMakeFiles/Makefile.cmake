@@ -15,9 +15,15 @@ set(CMAKE_MAKEFILE_DEPENDS
   "catkin_generated/order_packages.cmake"
   "control_motores/catkin_generated/ordered_paths.cmake"
   "control_motores/catkin_generated/package.cmake"
+<<<<<<< HEAD
   "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/CMakeLists.txt"
   "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores/CMakeLists.txt"
   "/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores/package.xml"
+=======
+  "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/CMakeLists.txt"
+  "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores/CMakeLists.txt"
+  "/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores/package.xml"
+>>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
   "/opt/ros/noetic/share/catkin/cmake/all.cmake"
   "/opt/ros/noetic/share/catkin/cmake/assert.cmake"
   "/opt/ros/noetic/share/catkin/cmake/atomic_configure_file.cmake"
