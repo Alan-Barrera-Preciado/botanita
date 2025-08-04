@@ -17,19 +17,19 @@ def joy_callback(data):
     global Ref_Izq, Ref_Der, Vel_Lineal, Vel_Angular
 
     if data.axes[7] > 0.8:
-        Vel_Lineal = Vel_Lineal + 0.1
+        Vel_Lineal = Vel_Lineal + 5
     if data.axes[7] < -0.8:
-        Vel_Lineal = Vel_Lineal - 0.1
-    if data.buttons[3] > 0.8:
-        Vel_Angular = Vel_Angular + 0.05
-    if data.buttons[0] > 0.8:
-        Vel_Angular = Vel_Angular - 0.
+        Vel_Lineal = Vel_Lineal - 5
+    if data.axes[6] > 0.8:
+        Vel_Angular = Vel_Angular + 0.1
+    if data.axes[6] < -0.8:
+        Vel_Angular = Vel_Angular - 0.1
     if data.buttons[8] > 0.8:
         Vel_Angular = 0
         Vel_Lineal = 0
 
-    Ref_Izq = max(min((2*Vel_Lineal - Vel_Angular * 60)/(16), 12), -12)
-    Ref_Der = max(min((2*Vel_Lineal - Vel_Angular * 60)/(16), 12), -12)
+    Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42)/(16), 12), -12)
+    Ref_Der = max(min((2*Vel_Lineal + Vel_Angular * 42)/(16), 12), -12)
 
     Ref = Float32MultiArray()
     Ref.data = [Ref_Izq, Ref_Der]
