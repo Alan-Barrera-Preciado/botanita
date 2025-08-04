@@ -2,6 +2,7 @@
 
 import numpy as np                  #Para operaciones matematicas
 import serial                       #Para comunicacion serial
+import matplotlib.pyplot as plt     #Para graficar
 import time                         #Para timeouts en comunicacion
 import pandas as pd                 #Para leer/escribir excel
 import rospy
@@ -25,13 +26,21 @@ def main():
 
 # ----------------- Espacio de estados discretizado (Motor Izquierda 12v) -----------------
 
-    Ad_Izq = np.array([[0.000, -0.0102], [0.0008, 0.7115]])
-    Bd_Izq = np.array([[0.0771],[0.4348]])
+#    Ad_Izq = np.array([[0.000, -0.0102], [0.0008, 0.7115]])
+#    Bd_Izq = np.array([[0.0771],[0.4348]])
+
+    Ad_Izq = np.array([[-0.0017, -0.0161], [0.0744, 0.7237]])
+     
+    Bd_Izq = np.array([[0.0760, [0,3376]]])
 
 # ----------------- Espacio de estados discretizado (Motor Derecha 24v) -----------------
 
-    Ad_Der = np.array([[-0.0002, -0.0102], [0.0111, 0.7191]])
-    Bd_Der = np.array([[0.0788],[0.3260]])
+#    Ad_Der = np.array([[-0.0002, -0.0102], [0.0111, 0.7191]])
+#    Bd_Der = np.array([[0.0788],[0.3260]])
+
+    Ad_Der = np.array([[0.0091, 0.0007], [-0.0277, 0.0054]])
+
+    Bd_Der = np.array([[0.0646], [1.1928]])
 
     C = np.array([0, 1])
 
@@ -42,9 +51,11 @@ def main():
     Hk_Izq = np.eye(2,2)
 
     Pk_Izq = np.array([[0.15, 0],[0, 0.75]])
-    Qk_Izq = np.array([[15, 0],[0, 1.5e-4]])
-    Rk_Izq = np.array([[7.5e-7, 0],[0, 9.5e-4]])
+#    Qk_Izq = np.array([[15, 0],[0, 1.5e-4]])
+#    Rk_Izq = np.array([[7.5e-7, 0],[0, 9.5e-4]])
 
+    Qk_Izq = np.array([[5.0e-2, 0], [0, 1.5e-5]])
+    Rk_Izq = np.array([[7.5e-9, 0], [0, 9.5e-4]])
     x_hat_Izq = np.array([[0],[0]])
 
 # ----------------- Filtro de Kalman (Motor Derecha 24v) -----------------
@@ -54,22 +65,31 @@ def main():
     Hk_Der = np.eye(2,2)
 
     Pk_Der = np.array([[0.15, 0],[0, 1]])
-    Qk_Der = np.array([[15, 0],[0, 8.5e-4]])
-    Rk_Der = np.array([[5e-5, 0],[0, 8.5e-4]])
+#    Qk_Der = np.array([[15, 0],[0, 8.5e-4]])
+#    Rk_Der = np.array([[5e-5, 0],[0, 8.5e-4]])
+    
+    Qk_Der = np.array([[1.5e-1, 0],[0, 8.5e-3]])
+    Rk_Der = np.array([[5e-3, 0],[0, 8.5e-4]])
 
     x_hat_Der = np.array([[0],[0]])
 
 # ----------------- LQR (Motor Izquierda 12v) -----------------
 
-    K_Izq = np.array([0.0006, 1.9469])
-    Kr_Izq = 2.6104
+#    K_Izq = np.array([0.0006, 1.9469])
+#    Kr_Izq = 2.6104
+   
+    K_Izq = np.array([0.0187, 0.3890])
+    Kr_Izq = 1.1983
 
     u_Izq = 0
 
 # ----------------- LQR (Motor Derecha 24v) -----------------
 
-    K_Der = np.array([0.0058, 0.9447])
-    Kr_Der = 1.8046
+#    K_Der = np.array([0.0058, 0.9447])
+#    Kr_Der = 1.8046
+    
+    K_Der = np.array([0.0000, 0.1022])
+    Kr_Der = 0.9374
 
     u_Der = 0
 
@@ -184,6 +204,22 @@ def main():
     cad = f"{0},{0}\n"
     serialArduino.write(cad.encode('ascii'))
     serialArduino.close()
+    
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
+
+    ax1.plot(Tiempo_plot, xhat_Izq_plot, label='Estimacion Izquierda (Rad/s) ')
+    ax1.plot(Tiempo_plot, Rad_Izq_plot, label='Medicion Izquierda (Rad/s) ')
+    ax1.plot(Tiempo_plot, Referencia_Izq_plot, label='Referencia Izquierda (Rad/s) ')
+    ax1.legend(loc='lower left')
+    ax1.set_ylabel('Velocidad (Rad/s)')
+
+    ax2.plot(Tiempo_plot, xhat_Der_plot, label='Estimacion Derecha (Rad/s) ')
+    ax2.plot(Tiempo_plot, Rad_Der_plot, label='Medicion Derecha (Rad/s) ')
+    ax2.plot(Tiempo_plot, Referencia_Der_plot, label='Referencia Derecha (Rad/s) ')
+    ax2.legend(loc='lower left')
+    ax2.set_ylabel('Velocidad (Rad/s)')
+    
+    plt.savefig("Motores_Referencia.png")
 
 if __name__ == '__main__':
     main()
