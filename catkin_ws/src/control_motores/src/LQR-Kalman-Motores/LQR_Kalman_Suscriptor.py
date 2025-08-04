@@ -31,7 +31,7 @@ def main():
 
     Ad_Izq = np.array([[-0.0017, -0.0161], [0.0744, 0.7237]])
      
-    Bd_Izq = np.array([[0.0760, [0,3376]]])
+    Bd_Izq = np.array([[0.0760], [0.3376]])
 
 # ----------------- Espacio de estados discretizado (Motor Derecha 24v) -----------------
 
@@ -54,8 +54,8 @@ def main():
 #    Qk_Izq = np.array([[15, 0],[0, 1.5e-4]])
 #    Rk_Izq = np.array([[7.5e-7, 0],[0, 9.5e-4]])
 
-    Qk_Izq = np.array([[5.0e-2, 0], [0, 1.5e-5]])
-    Rk_Izq = np.array([[7.5e-9, 0], [0, 9.5e-4]])
+    Qk_Izq = np.array([[1.5e-4, 0], [0, 1.5e-7]])
+    Rk_Izq = np.array([[7.5e-9, 0], [0, 9.5e-6]])
     x_hat_Izq = np.array([[0],[0]])
 
 # ----------------- Filtro de Kalman (Motor Derecha 24v) -----------------
@@ -68,8 +68,8 @@ def main():
 #    Qk_Der = np.array([[15, 0],[0, 8.5e-4]])
 #    Rk_Der = np.array([[5e-5, 0],[0, 8.5e-4]])
     
-    Qk_Der = np.array([[1.5e-1, 0],[0, 8.5e-3]])
-    Rk_Der = np.array([[5e-3, 0],[0, 8.5e-4]])
+    Qk_Der = np.array([[1.5e-4, 0],[0, 8.5e-6]])
+    Rk_Der = np.array([[5e-5, 0],[0, 8.5e-6]])
 
     x_hat_Der = np.array([[0],[0]])
 

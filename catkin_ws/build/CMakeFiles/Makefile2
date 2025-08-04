@@ -293,8 +293,8 @@ CMakeFiles/download_extra_data.dir/clean:
 # Target rules for target gtest/googlemock/CMakeFiles/gmock_main.dir
 
 # All Build rule for target.
-gtest/googlemock/CMakeFiles/gmock_main.dir/all: gtest/googlemock/CMakeFiles/gmock.dir/all
 gtest/googlemock/CMakeFiles/gmock_main.dir/all: gtest/googletest/CMakeFiles/gtest.dir/all
+gtest/googlemock/CMakeFiles/gmock_main.dir/all: gtest/googlemock/CMakeFiles/gmock.dir/all
 	$(MAKE) -f gtest/googlemock/CMakeFiles/gmock_main.dir/build.make gtest/googlemock/CMakeFiles/gmock_main.dir/depend
 	$(MAKE) -f gtest/googlemock/CMakeFiles/gmock_main.dir/build.make gtest/googlemock/CMakeFiles/gmock_main.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num=3,4 "Built target gmock_main"
@@ -405,24 +405,14 @@ gtest/googletest/CMakeFiles/gtest.dir/clean:
 control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/all:
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/depend
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/build
-<<<<<<< HEAD
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_py"
-=======
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_py"
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/all
 
 # Build rule for subdir invocation for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/rule: cmake_check_build_system
-<<<<<<< HEAD
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-=======
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
@@ -442,24 +432,14 @@ control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/clean:
 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/all:
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/depend
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build
-<<<<<<< HEAD
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_nodejs"
-=======
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_nodejs"
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/all
 
 # Build rule for subdir invocation for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule: cmake_check_build_system
-<<<<<<< HEAD
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-=======
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
 
 # Convenience name for target.
@@ -479,24 +459,14 @@ control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/clean:
 control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/all:
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/depend
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
-<<<<<<< HEAD
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_lisp"
-=======
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_lisp"
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
 
 # Build rule for subdir invocation for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule: cmake_check_build_system
-<<<<<<< HEAD
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-=======
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
@@ -516,24 +486,14 @@ control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean:
 control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/all:
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/depend
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/build
-<<<<<<< HEAD
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_eus"
-=======
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_eus"
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/all
 
 # Build rule for subdir invocation for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/rule: cmake_check_build_system
-<<<<<<< HEAD
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-=======
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
 
 # Convenience name for target.
@@ -553,24 +513,14 @@ control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/clean:
 control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/all:
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/depend
 	$(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
-<<<<<<< HEAD
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_cpp"
-=======
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles --progress-num= "Built target std_msgs_generate_messages_cpp"
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
 
 # Build rule for subdir invocation for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule: cmake_check_build_system
-<<<<<<< HEAD
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
 	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-=======
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
-	$(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/CMakeFiles 0
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.

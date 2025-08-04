@@ -169,11 +169,7 @@ depend:
 
 # Convenience name for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/rule:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/rule
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/rule
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/rule
 
 # Convenience name for target.
@@ -183,20 +179,12 @@ std_msgs_generate_messages_py: control_motores/CMakeFiles/std_msgs_generate_mess
 
 # fast build rule for target.
 std_msgs_generate_messages_py/fast:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/build
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_py.dir/build
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : std_msgs_generate_messages_py/fast
 
 # Convenience name for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/rule
 
 # Convenience name for target.
@@ -206,20 +194,12 @@ std_msgs_generate_messages_nodejs: control_motores/CMakeFiles/std_msgs_generate_
 
 # fast build rule for target.
 std_msgs_generate_messages_nodejs/fast:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : std_msgs_generate_messages_nodejs/fast
 
 # Convenience name for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/rule
 
 # Convenience name for target.
@@ -229,20 +209,12 @@ std_msgs_generate_messages_lisp: control_motores/CMakeFiles/std_msgs_generate_me
 
 # fast build rule for target.
 std_msgs_generate_messages_lisp/fast:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_lisp.dir/build
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : std_msgs_generate_messages_lisp/fast
 
 # Convenience name for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/rule:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/rule
 
 # Convenience name for target.
@@ -252,20 +224,12 @@ std_msgs_generate_messages_eus: control_motores/CMakeFiles/std_msgs_generate_mes
 
 # fast build rule for target.
 std_msgs_generate_messages_eus/fast:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/build
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_eus.dir/build
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : std_msgs_generate_messages_eus/fast
 
 # Convenience name for target.
 control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f CMakeFiles/Makefile2 control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/rule
 
 # Convenience name for target.
@@ -275,11 +239,7 @@ std_msgs_generate_messages_cpp: control_motores/CMakeFiles/std_msgs_generate_mes
 
 # fast build rule for target.
 std_msgs_generate_messages_cpp/fast:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(MAKE) -f control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/build.make control_motores/CMakeFiles/std_msgs_generate_messages_cpp.dir/build
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : std_msgs_generate_messages_cpp/fast
 
 # Help Target

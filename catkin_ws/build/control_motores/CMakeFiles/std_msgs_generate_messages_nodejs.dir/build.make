@@ -43,17 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-<<<<<<< HEAD
 CMAKE_SOURCE_DIR = /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build
-=======
-CMAKE_SOURCE_DIR = /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src
-
-# The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 
 # Utility rule file for std_msgs_generate_messages_nodejs.
 
@@ -70,18 +63,10 @@ control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build: std_msgs
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/build
 
 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/clean:
-<<<<<<< HEAD
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores && $(CMAKE_COMMAND) -P CMakeFiles/std_msgs_generate_messages_nodejs.dir/cmake_clean.cmake
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/clean
 
 control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/depend:
 	cd /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores /home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/DependInfo.cmake --color=$(COLOR)
-=======
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores && $(CMAKE_COMMAND) -P CMakeFiles/std_msgs_generate_messages_nodejs.dir/cmake_clean.cmake
-.PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/clean
-
-control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/depend:
-	cd /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/control_motores /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores /home/modularpc/Desktop/Proyecto-Modular-Botanita/catkin_ws/build/control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/DependInfo.cmake --color=$(COLOR)
->>>>>>> 8f0f21489cfbeadb1932efeaaeb8d52347118a7d
 .PHONY : control_motores/CMakeFiles/std_msgs_generate_messages_nodejs.dir/depend
 
