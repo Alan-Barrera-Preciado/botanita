@@ -1,8 +1,0 @@
-prefix=/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/devel
-
-Name: control_motores
-Description: Description of control_motores
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
