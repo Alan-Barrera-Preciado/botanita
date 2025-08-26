@@ -1,7 +1,5 @@
-# Este es un comentario de Alan
-
 #!/usr/bin/env python3
-# Fernando estuvo aqui xD
+
 import serial
 import pandas as pd
 import time
@@ -237,9 +235,13 @@ class RobotMobilDiff:
             
     def referenciaMotoresCustom(self, t, ref_Izq, ref_Der, z_Izq, z_Der):
         pwm_izq, uSat_I = self.motorIzquierdo.pasoLectura(t, ref_Izq, z_Izq)
-        pwm_Der, uSat_D = self.motorDerecho.pasoLectura(t, ref_Der, z_Der)
-        
+        pwm_Der, uSat_D = self.motorDerecho.pasoLectura(t, ref_Der, z_Der)        
         return pwm_izq, pwm_Der, uSat_I, uSat_D  
+        
+    def publicarRPM(self,RPM_Izq, RPM_Der):
+        RPM = Float32MultiArray()
+        RPM.data = [RPM_Izq, RPM_Der]
+        pub.publish(RPM)
 
 dt = 0.025 # dt para ambos sistemas
 
@@ -263,9 +265,6 @@ motor_Izq.kalman.setGananciasQR([1e-15, 5e-15], [1e-20, 9.5e-14]) # Ganancias Q 
 # configuraciones LQR penalizacion ([I, V], | R) 
 motor_Izq.lqr.setPenalizacionesQR([1, 125], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
-print(motor_Izq.lqr.K)
-print(motor_Izq.lqr.Kr)
-
 ########################## MOTOR 2 (Derecho) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
 Km = Kb = 0.57145056
@@ -286,9 +285,6 @@ motor_Der.kalman.setGananciasQR([1e-15, 5e-15], [1e-25, 13e-14]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
 motor_Der.lqr.setPenalizacionesQR([1, 125], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
-print(motor_Der.lqr.K)
-print(motor_Der.lqr.Kr)
-
 ############# Robot Diferencial #############
 
 bot = RobotMobilDiff(motor_Izq, motor_Der, dt)
@@ -303,6 +299,7 @@ def main(dt):
     
     rospy.init_node('controlador_motores')
     rospy.Subscriber('/vel_referencia', Float32MultiArray, callback_ref)
+    pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
     # dt = 0.025
     rate = rospy.Rate(1/dt) 
    
@@ -372,7 +369,7 @@ def main(dt):
                     serialPort.write("0,0\n".encode())
                     break
                 '''
-                
+                bot.PublicarRPM(rpmI, rpmD)
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
                 #print(f"[{t}] CorrienteD: {corrienteD:.2f} mA | RPMD: {rpmD:.2f}")
