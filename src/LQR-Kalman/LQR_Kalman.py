@@ -239,8 +239,10 @@ class RobotMobilDiff:
         pwm_Der, uSat_D = self.motorDerecho.pasoLectura(t, ref_Der, z_Der)        
         return pwm_izq, pwm_Der, uSat_I, uSat_D  
         
-    def publicarRPM(self,RPM_Izq, RPM_Der):
+    def publicarRPM(self,RPM_Izq, RPM_Der, pwm_Izq, pwm_Der):
         RPM = Float32MultiArray()
+        RPM_Izq * math.copysign(1, pwm_Izq)
+        RPM_Der * math.copysign(1, pwm_Der)
         RPM.data = [RPM_Izq, RPM_Der]
         self.pub.publish(RPM)
 
@@ -370,7 +372,7 @@ def main(dt):
                     serialPort.write("0,0\n".encode())
                     break
                 '''
-                bot.publicarRPM(rpmI, rpmD)
+                bot.publicarRPM(rpmI, rpmD, pwm_Izq, pwm_Der)
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
                 #print(f"[{t}] CorrienteD: {corrienteD:.2f} mA | RPMD: {rpmD:.2f}")
