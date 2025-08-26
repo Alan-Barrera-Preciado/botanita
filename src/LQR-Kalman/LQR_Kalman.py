@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Fernando estuvo aqui xD
 import serial
 import pandas as pd
 import time
