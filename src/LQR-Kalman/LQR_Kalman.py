@@ -228,10 +228,11 @@ class MotorKalmanLQR:
         return pwm+rompe_fr, u_sat # pwm+15 para romper friccion estatica inicial
 
 class RobotMobilDiff:
-    def __init__(self, motorIzquierdo: MotorKalmanLQR, motorDerecho: MotorKalmanLQR, dt):
+    def __init__(self, motorIzquierdo: MotorKalmanLQR, motorDerecho: MotorKalmanLQR, dt, pub_rpm):
         self.dt = dt
         self.motorIzquierdo = motorIzquierdo
         self.motorDerecho = motorDerecho
+        self.pub = pub_rpm
             
     def referenciaMotoresCustom(self, t, ref_Izq, ref_Der, z_Izq, z_Der):
         pwm_izq, uSat_I = self.motorIzquierdo.pasoLectura(t, ref_Izq, z_Izq)
@@ -241,7 +242,7 @@ class RobotMobilDiff:
     def publicarRPM(self,RPM_Izq, RPM_Der):
         RPM = Float32MultiArray()
         RPM.data = [RPM_Izq, RPM_Der]
-        pub.publish(RPM)
+        self.pub.publish(RPM)
 
 dt = 0.025 # dt para ambos sistemas
 
@@ -287,7 +288,7 @@ motor_Der.lqr.setPenalizacionesQR([1, 125], 45) # Penalizacion Q (referencia) | 
 
 ############# Robot Diferencial #############
 
-bot = RobotMobilDiff(motor_Izq, motor_Der, dt)
+bot = RobotMobilDiff(motor_Izq, motor_Der, dt, pub)
 
 def callback_ref(msg):
     global Ref_Izq, Ref_Der
@@ -369,7 +370,7 @@ def main(dt):
                     serialPort.write("0,0\n".encode())
                     break
                 '''
-                bot.PublicarRPM(rpmI, rpmD)
+                bot.publicarRPM(rpmI, rpmD)
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
                 #print(f"[{t}] CorrienteD: {corrienteD:.2f} mA | RPMD: {rpmD:.2f}")
