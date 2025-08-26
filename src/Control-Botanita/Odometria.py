@@ -10,8 +10,8 @@ import math
 rospy.init_node('odometria')
 pub = rospy.Publisher('/odom', Odometry, queue_size=10)
 
-r = 0.405    # radio de las ruedas [m]
-L = 0.08    # distancia entre ruedas [m]
+r = 0.08    # radio de las ruedas [m]
+L = 0.405    # distancia entre ruedas [m]
 
 x, y, theta = 0.0, 0.0, 0.0
 prev_time = None
