@@ -1,3 +1,5 @@
+# Este es un comentario de Alan
+
 #!/usr/bin/env python3
 import serial
 import pandas as pd
