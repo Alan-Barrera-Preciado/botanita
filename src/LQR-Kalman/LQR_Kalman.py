@@ -14,6 +14,9 @@ from datetime import datetime
 import rospy
 from std_msgs.msg import Float32MultiArray
 
+rospy.init_node('controlador_motores')
+pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
+
 def _next_count_filename(path):
     """Si path existe, devuelve path_1, path_2, ..."""
     base, ext = os.path.splitext(path)
@@ -272,7 +275,7 @@ motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
 motor_Izq.kalman.setGananciasQR([1e-15, 5e-15], [1e-20, 9.5e-14]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Izq.lqr.setPenalizacionesQR([1, 125], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Izq.lqr.setPenalizacionesQR([5e-6, 22], 44) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ########################## MOTOR 2 (Derecho) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
@@ -292,7 +295,7 @@ motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
 motor_Der.kalman.setGananciasQR([1e-15, 5e-15], [1e-25, 13e-14]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Der.lqr.setPenalizacionesQR([1, 125], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Der.lqr.setPenalizacionesQR([5e-6, 22], 44) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ############# Robot Diferencial #############
 
@@ -306,9 +309,7 @@ def callback_ref(msg):
 def main(dt):
     global Ref_Izq, Ref_Der
     
-    rospy.init_node('controlador_motores')
     rospy.Subscriber('/vel_referencia', Float32MultiArray, callback_ref)
-    pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
     # dt = 0.025
     rate = rospy.Rate(1/dt) 
    
