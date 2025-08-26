@@ -393,7 +393,7 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
-    ruta = mergeData("datos", mode='count', outdir="/home/pi/datos")
+    ruta = mergeData("datos", mode='count', outdir="./datasets")
 
 if __name__ == '__main__':
     main(dt)
