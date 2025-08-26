@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import serial
 import pandas as pd
 import time
@@ -9,8 +8,76 @@ import math
 from scipy.signal import cont2discrete
 from scipy.linalg import solve_discrete_are
 
+import os
+from datetime import datetime
+
 import rospy
 from std_msgs.msg import Float32MultiArray
+
+def _next_count_filename(path):
+    """Si path existe, devuelve path_1, path_2, ..."""
+    base, ext = os.path.splitext(path)
+    i = 1
+    while True:
+        candidate = f"{base}_{i}{ext}"
+        if not os.path.exists(candidate):
+            return candidate
+        i += 1
+
+def mergeData(name="datos", mode='timestamp', outdir='.', verbose=True):
+    # asegurar extensión .csv
+    if not name.lower().endswith('.csv'):
+        name = f"{name}.csv"
+
+    # obtener datos desde tu objeto 'bot' (asumiendo variable global bot)
+    t_izq, z_izq, x_est_izq, u_izq = bot.motorIzquierdo.grafica.guardadosToArray()
+    _,      z_der, x_est_der, u_der    = bot.motorDerecho.grafica.guardadosToArray()
+
+    # crear DataFrame
+    df = pd.DataFrame({
+        't': t_izq,
+
+        'vel_izq': z_izq[:, 0],
+        'i_izq':   z_izq[:, 1],
+        'vel_izq_est': x_est_izq[:, 0],
+        'i_izq_est':   x_est_izq[:, 1],
+        'u_izq': u_izq,
+
+        'vel_der': z_der[:, 0],
+        'i_der':   z_der[:, 1],
+        'vel_der_est': x_est_der[:, 0],
+        'i_der_est':   x_est_der[:, 1],
+        'u_der': u_der
+    })
+
+    # preparar ruta de salida
+    outdir = os.path.expanduser(outdir)
+    os.makedirs(outdir, exist_ok=True)
+    outpath = os.path.join(outdir, name)
+
+    # modificar nombre según modo para no sobreescribir
+    if mode == 'timestamp':
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base, ext = os.path.splitext(outpath)
+        outpath = f"{base}_{ts}{ext}"
+        # por si improbable colisión, fallback a contador
+        if os.path.exists(outpath):
+            outpath = _next_count_filename(outpath)
+    elif mode == 'count':
+        if os.path.exists(outpath):
+            outpath = _next_count_filename(outpath)
+    else:
+        # modo desconocido: usar timestamp por defecto
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base, ext = os.path.splitext(outpath)
+        outpath = f"{base}_{ts}{ext}"
+
+    # guardar
+    df.to_csv(outpath, index=False)
+    if verbose:
+        print(f"Datos guardados en: {outpath}")
+    return outpath
+
 
 # ===== OBJETOS PARA OBJETO MOTOR =====
 
@@ -133,69 +200,8 @@ class GraficasSistema:
         
         self.formaArray = 1
 
-
-    def graficar(self, titulo="", save=0):
-        if self.formaArray == 0:
-            self.guardadosToArray()
-        
-        plt.figure(figsize=(10, 8))
-        
-        # Velocidad
-        plt.subplot(2, 1, 1)
-        plt.plot(self.t_plot, self.z_plot[:, 1], 'bx', markersize=2, label='Velocidad medida')
-        plt.plot(self.t_plot, self.x_est_plot[:, 1], 'k-', label='Velocidad estimada')
-        plt.plot(self.t_plot, self.ref_plot, 'g--', label='Velocidad referencia')
-        plt.ylabel('Velocidad [rad/s]')
-        plt.title(f"Velocidad Angular - {titulo}")
-        plt.grid(True)
-        plt.legend()
-
-        # Corriente
-        plt.subplot(2, 1, 2)
-        plt.plot(self.t_plot, self.z_plot[:, 0], 'rx', markersize=2, label='Corriente medida')
-        plt.plot(self.t_plot, self.x_est_plot[:, 0], 'k-', label='Corriente estimada')
-        plt.xlabel('Tiempo [s]')
-        plt.ylabel('Corriente [A]')
-        plt.title(f"Corriente - {titulo}")
-        plt.grid(True)
-        plt.legend()
-
-        plt.tight_layout()
-        # plt.show()
-        plt.savefig(f"{titulo}_vel_corr.png")
-    
-        if len(self.u_plot) != 0:
-            plt.figure()
-            
-            print(np.shape(self.u_plot))
-            print(np.shape(self.t_plot))
-            
-            # accion de control
-            plt.plot(self.t_plot, self.u_plot, 'r--', label='Accion de control')
-            plt.ylabel('[V]')
-            plt.title(f"Accion de control - {titulo}")
-            plt.grid(True)
-            plt.legend()
-            
-            #plt.show()
-            plt.savefig(f"{titulo}_u.png")
-
-            
-    def guardarExcel(self, name=""):
-        if self.formaArray == 0:
-            self.guardadosToArray()
-            
-        df = pd.DataFrame({
-            't': self.t_plot,
-            'rad_s': self.z_plot[:, 0],
-            'CorrienteD_mA': self.z_plot[:, 1],
-        })
-        
-        df.to_csv(f"{name}.csv", index=False)
-        print("Datos guardados en " + name)
-        
-        
-        
+        return self.t_plot, self.z_plot, self.x_est_plot, self.u_plot
+               
 class MotorKalmanLQR:
     def __init__(self, sys: Sistema):
         self.sys = sys
@@ -385,9 +391,14 @@ def main(dt):
             
     serialPort.close()
 
-    bot.motorDerecho.grafica.graficar("motorDerecho", 1)
-    bot.motorIzquierdo.grafica.graficar("motorIzquierdo")
-    plt.show()
+    # usa timestamp (por defecto)
+    #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
+
+    # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
+    ruta = mergeData("datos", mode='count', outdir="./datasets")
 
 if __name__ == '__main__':
     main(dt)
+
+
+
