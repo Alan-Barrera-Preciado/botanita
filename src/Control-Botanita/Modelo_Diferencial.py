@@ -24,7 +24,7 @@ def joy_callback(data):
         Vel_Angular = Vel_Angular + 0.1
     if data.axes[6] < -0.8:
         Vel_Angular = Vel_Angular - 0.1
-    if data.buttons[8] > 0.8:
+    if data.buttons[3] > 0.8:
         Vel_Angular = 0
         Vel_Lineal = 0
 
