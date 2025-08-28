@@ -338,10 +338,10 @@ def main(dt):
     while not rospy.is_shutdown():
         serialPort.write(bytes([1]))  # MEASURE_REQUEST
         serialPort.flush()
-        
         raw_data = serialPort.readline().decode().strip()
+        if not raw_data:
+            continue
         partes = raw_data.split(',')
-
         if len(partes) == 4:
             try:
                 time.sleep(0.025)
@@ -369,7 +369,7 @@ def main(dt):
                         [corrienteD / 1000.0],
                         [rpmD * 0.1047197551]
                       ])
-                            
+                print(z_Izq)
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
                 '''
