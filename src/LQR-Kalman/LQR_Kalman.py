@@ -229,12 +229,7 @@ class MotorKalmanLQR:
 		    # PWM (SÍMBOLO del signo y magnitud)
         pwm = int(np.clip(u_sat / 12.0, -1.0, 1.0) * 255)
 
-        if pwm < 10:
-            rompe_fr = 0
-        else:
-            rompe_fr = 10
-
-        return pwm+rompe_fr, u_sat # pwm+15 para romper friccion estatica inicial
+        return pwm, u_sat # pwm+15 para romper friccion estatica inicial
 
 class RobotMobilDiff:
     def __init__(self, motorIzquierdo: MotorKalmanLQR, motorDerecho: MotorKalmanLQR, dt, pub_rpm):
@@ -341,6 +336,7 @@ def main(dt):
         raw_data = serialPort.readline().decode().strip()
         if not raw_data:
             continue
+        print(f"RAW: {raw_data}")
         partes = raw_data.split(',')
         if len(partes) == 4:
             try:

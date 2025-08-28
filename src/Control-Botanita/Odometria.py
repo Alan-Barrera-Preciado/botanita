@@ -21,7 +21,7 @@ def rpm_callback(msg):
 
     rpm_l, rpm_r = msg.data
 
-    w_l = rpm_l * 2 * math.pi / 60
+    w_l = -rpm_l * 2 * math.pi / 60
     w_r = rpm_r * 2 * math.pi / 60
 
     v = r * (w_r + w_l) / 2
