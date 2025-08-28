@@ -34,10 +34,9 @@ def rpm_callback(msg):
         dt = (current_time - prev_time).to_sec()
     
     prev_time = current_time
-
+    theta += omega * dt
     x += v * math.cos(theta) * dt
     y += v * math.sin(theta) * dt
-    theta += omega * dt
 
     odom_msg = Odometry()
     odom_msg.header.stamp = current_time

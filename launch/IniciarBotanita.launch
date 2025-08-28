@@ -1,0 +1,4 @@
+<launch>
+<node pkg="botanita" name="Control_Motores" type="LQR_Kalman.py"/>
+<node pkg="botanita" name="Odometria_Botanita" type="Odometria.py"/>
+</launch>
