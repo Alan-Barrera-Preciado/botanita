@@ -4,6 +4,7 @@ import rospy
 from std_msgs.msg import Float32MultiArray
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist, Vector3
+import numpy as np
 import tf
 import math
 
@@ -15,7 +16,7 @@ L = 0.405    # distancia entre ruedas [m]
 
 x, y, theta = 0.0, 0.0, 0.0
 prev_time = None
-
+        
 def rpm_callback(msg):
     global x, y, theta, prev_time
 
@@ -33,11 +34,16 @@ def rpm_callback(msg):
     else:
         dt = (current_time - prev_time).to_sec()
     
+    alpha = 0.4
+    v_f = alpha*v + (1-alpha)*v_f
+    omega_f = alpha*omega + (1-alpha)*omega_f
+    
     prev_time = current_time
+    theta_mid = theta + 0.5*omega*dt
+    x += v * math.cos(theta_mid) * dt
+    y += v * math.sin(theta_mid) * dt
     theta += omega * dt
-    x += v * math.cos(theta) * dt
-    y += v * math.sin(theta) * dt
-
+    
     odom_msg = Odometry()
     odom_msg.header.stamp = current_time
     odom_msg.header.frame_id = "odom"
