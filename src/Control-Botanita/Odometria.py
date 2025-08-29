@@ -16,9 +16,10 @@ L = 0.405    # distancia entre ruedas [m]
 
 x, y, theta = 0.0, 0.0, 0.0
 prev_time = None
+v_f, omega_f = 0.0, 0.0
         
 def rpm_callback(msg):
-    global x, y, theta, prev_time
+    global x, y, theta, prev_time, v_f, omega_f
 
     rpm_l, rpm_r = msg.data
 
@@ -39,10 +40,10 @@ def rpm_callback(msg):
     omega_f = alpha*omega + (1-alpha)*omega_f
     
     prev_time = current_time
-    theta_mid = theta + 0.5*omega*dt
-    x += v * math.cos(theta_mid) * dt
-    y += v * math.sin(theta_mid) * dt
-    theta += omega * dt
+    theta_mid = theta + 0.5*omega_f*dt
+    x += v_f * math.cos(theta_mid) * dt
+    y += v_f * math.sin(theta_mid) * dt
+    theta += omega_f * dt
     
     odom_msg = Odometry()
     odom_msg.header.stamp = current_time
@@ -58,8 +59,8 @@ def rpm_callback(msg):
     odom_msg.pose.pose.orientation.z = quat[2]
     odom_msg.pose.pose.orientation.w = quat[3]
 
-    odom_msg.twist.twist.linear.x = v
-    odom_msg.twist.twist.angular.z = omega
+    odom_msg.twist.twist.linear.x = v_f
+    odom_msg.twist.twist.angular.z = omega_f
 
     pub.publish(odom_msg)
 
