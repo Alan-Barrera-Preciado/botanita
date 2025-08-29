@@ -44,7 +44,7 @@ def rpm_callback(msg):
     x += v_f * math.cos(theta_mid) * dt
     y += v_f * math.sin(theta_mid) * dt
     theta += omega_f * dt
-    
+    print(theta)
     odom_msg = Odometry()
     odom_msg.header.stamp = current_time
     odom_msg.header.frame_id = "odom"
@@ -58,6 +58,11 @@ def rpm_callback(msg):
     odom_msg.pose.pose.orientation.y = quat[1]
     odom_msg.pose.pose.orientation.z = quat[2]
     odom_msg.pose.pose.orientation.w = quat[3]
+
+    quat = odom_msg.pose.pose.orientation
+(roll, pitch, yaw) = tf.transformations.euler_from_quaternion(
+    [quat.x, quat.y, quat.z, quat.w]
+)
 
     odom_msg.twist.twist.linear.x = v_f
     odom_msg.twist.twist.angular.z = omega_f
