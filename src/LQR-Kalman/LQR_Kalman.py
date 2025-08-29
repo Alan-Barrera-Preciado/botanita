@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import serial
 import pandas as pd
 import time
@@ -9,8 +8,79 @@ import math
 from scipy.signal import cont2discrete
 from scipy.linalg import solve_discrete_are
 
+import os
+from datetime import datetime
+
 import rospy
 from std_msgs.msg import Float32MultiArray
+
+rospy.init_node('controlador_motores')
+pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
+
+def _next_count_filename(path):
+    """Si path existe, devuelve path_1, path_2, ..."""
+    base, ext = os.path.splitext(path)
+    i = 1
+    while True:
+        candidate = f"{base}_{i}{ext}"
+        if not os.path.exists(candidate):
+            return candidate
+        i += 1
+
+def mergeData(name="datos", mode='timestamp', outdir='.', verbose=True):
+    # asegurar extensión .csv
+    if not name.lower().endswith('.csv'):
+        name = f"{name}.csv"
+
+    # obtener datos desde tu objeto 'bot' (asumiendo variable global bot)
+    t_izq, z_izq, x_est_izq, u_izq = bot.motorIzquierdo.grafica.guardadosToArray()
+    _,      z_der, x_est_der, u_der    = bot.motorDerecho.grafica.guardadosToArray()
+
+    # crear DataFrame
+    df = pd.DataFrame({
+        't': t_izq,
+
+        'vel_izq': z_izq[:, 0],
+        'i_izq':   z_izq[:, 1],
+        'vel_izq_est': x_est_izq[:, 0],
+        'i_izq_est':   x_est_izq[:, 1],
+        'u_izq': u_izq,
+
+        'vel_der': z_der[:, 0],
+        'i_der':   z_der[:, 1],
+        'vel_der_est': x_est_der[:, 0],
+        'i_der_est':   x_est_der[:, 1],
+        'u_der': u_der
+    })
+
+    # preparar ruta de salida
+    outdir = os.path.expanduser(outdir)
+    os.makedirs(outdir, exist_ok=True)
+    outpath = os.path.join(outdir, name)
+
+    # modificar nombre según modo para no sobreescribir
+    if mode == 'timestamp':
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base, ext = os.path.splitext(outpath)
+        outpath = f"{base}_{ts}{ext}"
+        # por si improbable colisión, fallback a contador
+        if os.path.exists(outpath):
+            outpath = _next_count_filename(outpath)
+    elif mode == 'count':
+        if os.path.exists(outpath):
+            outpath = _next_count_filename(outpath)
+    else:
+        # modo desconocido: usar timestamp por defecto
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base, ext = os.path.splitext(outpath)
+        outpath = f"{base}_{ts}{ext}"
+
+    # guardar
+    df.to_csv(outpath, index=False)
+    if verbose:
+        print(f"Datos guardados en: {outpath}")
+    return outpath
+
 
 # ===== OBJETOS PARA OBJETO MOTOR =====
 
@@ -133,69 +203,8 @@ class GraficasSistema:
         
         self.formaArray = 1
 
-
-    def graficar(self, titulo="", save=0):
-        if self.formaArray == 0:
-            self.guardadosToArray()
-        
-        plt.figure(figsize=(10, 8))
-        
-        # Velocidad
-        plt.subplot(2, 1, 1)
-        plt.plot(self.t_plot, self.z_plot[:, 1], 'bx', markersize=2, label='Velocidad medida')
-        plt.plot(self.t_plot, self.x_est_plot[:, 1], 'k-', label='Velocidad estimada')
-        plt.plot(self.t_plot, self.ref_plot, 'g--', label='Velocidad referencia')
-        plt.ylabel('Velocidad [rad/s]')
-        plt.title(f"Velocidad Angular - {titulo}")
-        plt.grid(True)
-        plt.legend()
-
-        # Corriente
-        plt.subplot(2, 1, 2)
-        plt.plot(self.t_plot, self.z_plot[:, 0], 'rx', markersize=2, label='Corriente medida')
-        plt.plot(self.t_plot, self.x_est_plot[:, 0], 'k-', label='Corriente estimada')
-        plt.xlabel('Tiempo [s]')
-        plt.ylabel('Corriente [A]')
-        plt.title(f"Corriente - {titulo}")
-        plt.grid(True)
-        plt.legend()
-
-        plt.tight_layout()
-        # plt.show()
-        plt.savefig(f"{titulo}_vel_corr.png")
-    
-        if len(self.u_plot) != 0:
-            plt.figure()
-            
-            print(np.shape(self.u_plot))
-            print(np.shape(self.t_plot))
-            
-            # accion de control
-            plt.plot(self.t_plot, self.u_plot, 'r--', label='Accion de control')
-            plt.ylabel('[V]')
-            plt.title(f"Accion de control - {titulo}")
-            plt.grid(True)
-            plt.legend()
-            
-            #plt.show()
-            plt.savefig(f"{titulo}_u.png")
-
-            
-    def guardarExcel(self, name=""):
-        if self.formaArray == 0:
-            self.guardadosToArray()
-            
-        df = pd.DataFrame({
-            't': self.t_plot,
-            'rad_s': self.z_plot[:, 0],
-            'CorrienteD_mA': self.z_plot[:, 1],
-        })
-        
-        df.to_csv(f"{name}.csv", index=False)
-        print("Datos guardados en " + name)
-        
-        
-        
+        return self.t_plot, self.z_plot, self.x_est_plot, self.u_plot
+               
 class MotorKalmanLQR:
     def __init__(self, sys: Sistema):
         self.sys = sys
@@ -220,12 +229,7 @@ class MotorKalmanLQR:
 		    # PWM (SÍMBOLO del signo y magnitud)
         pwm = int(np.clip(u_sat / 12.0, -1.0, 1.0) * 255)
 
-        if pwm < 10:
-            rompe_fr = 0
-        else:
-            rompe_fr = 10
-
-        return pwm+rompe_fr, u_sat # pwm+15 para romper friccion estatica inicial
+        return pwm, u_sat # pwm+15 para romper friccion estatica inicial
 
 class RobotMobilDiff:
     def __init__(self, motorIzquierdo: MotorKalmanLQR, motorDerecho: MotorKalmanLQR, dt, pub_rpm):
@@ -264,7 +268,7 @@ motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
 motor_Izq.kalman.setGananciasQR([1e-15, 5e-15], [1e-20, 9.5e-14]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Izq.lqr.setPenalizacionesQR([1, 125], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Izq.lqr.setPenalizacionesQR([5e-6, 22], 44) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ########################## MOTOR 2 (Derecho) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
@@ -284,7 +288,7 @@ motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
 motor_Der.kalman.setGananciasQR([1e-15, 5e-15], [1e-25, 13e-14]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Der.lqr.setPenalizacionesQR([1, 125], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Der.lqr.setPenalizacionesQR([5e-6, 22], 44) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ############# Robot Diferencial #############
 
@@ -298,9 +302,7 @@ def callback_ref(msg):
 def main(dt):
     global Ref_Izq, Ref_Der
     
-    rospy.init_node('controlador_motores')
     rospy.Subscriber('/vel_referencia', Float32MultiArray, callback_ref)
-    pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
     # dt = 0.025
     rate = rospy.Rate(1/dt) 
    
@@ -331,10 +333,11 @@ def main(dt):
     while not rospy.is_shutdown():
         serialPort.write(bytes([1]))  # MEASURE_REQUEST
         serialPort.flush()
-        
         raw_data = serialPort.readline().decode().strip()
+        if not raw_data:
+            continue
+        print(f"RAW: {raw_data}")
         partes = raw_data.split(',')
-
         if len(partes) == 4:
             try:
                 time.sleep(0.025)
@@ -362,7 +365,7 @@ def main(dt):
                         [corrienteD / 1000.0],
                         [rpmD * 0.1047197551]
                       ])
-                            
+                print(z_Izq)
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
                 '''
@@ -370,6 +373,13 @@ def main(dt):
                     serialPort.write("0,0\n".encode())
                     break
                 '''
+                print(pwm_Izq)
+                print(pwm_Der)
+                print("-----------------")
+                if pwm_Izq < 0:
+                     rpmI = rpmI*-1
+                if pwm_Der < 0:
+                     rpmD = rpmD*-1
                 bot.publicarRPM(rpmI, rpmD)
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
@@ -383,9 +393,14 @@ def main(dt):
             
     serialPort.close()
 
-    bot.motorDerecho.grafica.graficar("motorDerecho", 1)
-    bot.motorIzquierdo.grafica.graficar("motorIzquierdo")
-    plt.show()
+    # usa timestamp (por defecto)
+    #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
+
+    # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
+    ruta = mergeData("datos", mode='count', outdir="./datasets")
 
 if __name__ == '__main__':
     main(dt)
+
+
+
