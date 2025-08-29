@@ -33,8 +33,8 @@ def mergeData(name="datos", mode='timestamp', outdir='.', verbose=True):
         name = f"{name}.csv"
 
     # obtener datos desde tu objeto 'bot' (asumiendo variable global bot)
-    t_izq, z_izq, x_est_izq, u_izq = bot.motorIzquierdo.grafica.guardadosToArray()
-    _,      z_der, x_est_der, u_der    = bot.motorDerecho.grafica.guardadosToArray()
+    t_izq, z_izq, x_est_izq, u_izq, ref_vel_izq = bot.motorIzquierdo.grafica.guardadosToArray()
+    _,      z_der, x_est_der, u_der, ref_vel_der = bot.motorDerecho.grafica.guardadosToArray()
 
     # crear DataFrame
     df = pd.DataFrame({
@@ -45,12 +45,14 @@ def mergeData(name="datos", mode='timestamp', outdir='.', verbose=True):
         'vel_izq_est': x_est_izq[:, 0],
         'i_izq_est':   x_est_izq[:, 1],
         'u_izq': u_izq,
+        'ref_vel_izq': ref_vel_izq,
 
         'vel_der': z_der[:, 0],
         'i_der':   z_der[:, 1],
         'vel_der_est': x_est_der[:, 0],
         'i_der_est':   x_est_der[:, 1],
-        'u_der': u_der
+        'u_der': u_der,
+        'ref_vel_der': ref_vel_der
     })
 
     # preparar ruta de salida
@@ -203,7 +205,7 @@ class GraficasSistema:
         
         self.formaArray = 1
 
-        return self.t_plot, self.z_plot, self.x_est_plot, self.u_plot
+        return self.t_plot, self.z_plot, self.x_est_plot, self.u_plot, self.ref_plot
                
 class MotorKalmanLQR:
     def __init__(self, sys: Sistema):
@@ -247,6 +249,8 @@ class RobotMobilDiff:
         RPM = Float32MultiArray()
         RPM.data = [RPM_Izq, RPM_Der]
         self.pub.publish(RPM)
+
+
 
 dt = 0.025 # dt para ambos sistemas
 
@@ -365,6 +369,7 @@ def main(dt):
                         [corrienteD / 1000.0],
                         [rpmD * 0.1047197551]
                       ])
+
                 print(z_Izq)
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
