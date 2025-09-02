@@ -340,7 +340,6 @@ def main(dt):
         raw_data = serialPort.readline().decode().strip()
         if not raw_data:
             continue
-        print(f"RAW: {raw_data}")
         partes = raw_data.split(',')
         if len(partes) == 4:
             try:
@@ -370,7 +369,6 @@ def main(dt):
                         [rpmD * 0.1047197551]
                       ])
 
-                print(z_Izq)
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
                 '''
@@ -378,9 +376,6 @@ def main(dt):
                     serialPort.write("0,0\n".encode())
                     break
                 '''
-                print(pwm_Izq)
-                print(pwm_Der)
-                print("-----------------")
                 if pwm_Izq < 0:
                      rpmI = rpmI*-1
                 if pwm_Der < 0:
