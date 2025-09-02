@@ -27,7 +27,7 @@ def _pick_column(df, candidates):
     return None
 
 def plot_motors_from_csv(csv_path,
-                         outdir='.',
+                         outdir='./src/LQR-Kalman/dataset',
                          save=True,
                          save_mode='timestamp',  # 'timestamp' o 'count'
                          show=False,
@@ -58,7 +58,7 @@ def plot_motors_from_csv(csv_path,
     u_izq_col = _pick_column(df, ['u_izq', 'uizq', 'u_izquierda', 'u_left', 'u_left'])
     u_der_col = _pick_column(df, ['u_der', 'uder', 'u_derecha', 'u_right', 'u_right'])
     ref_izq_col = _pick_column(df, ['ref_vel_izq', 'vel_ref', 'velocidad_ref', 'reference'])
-    ref_der_col = _pick_column(df, ['ref_der_izq', 'vel_ref', 'velocidad_ref', 'reference'])
+    ref_der_col = _pick_column(df, ['ref_vel_der', 'vel_ref', 'velocidad_ref', 'reference'])
     # conveniencia: si faltan algunas columnas no rompa todo
     def get_arr(col):
         return df[col].values if (col is not None and col in df.columns) else None
@@ -116,8 +116,8 @@ def plot_motors_from_csv(csv_path,
             
         # Velocidad
         plt.subplot(2, 1, 1)
-        plt.plot(t, z[1], 'b-', markersize=2, label='Velocidad medida')
-        plt.plot(t, x_est[1], 'k-', label='Velocidad estimada')
+        plt.plot(t, z[0], 'b-', markersize=2, label='Velocidad medida')
+        plt.plot(t, x_est[0], 'k-', label='Velocidad estimada')
         
         plt.plot(t, ref, 'g--', label='Velocidad referencia')
         plt.ylabel('Velocidad [rad/s]')
@@ -127,8 +127,8 @@ def plot_motors_from_csv(csv_path,
 
         # Corriente
         plt.subplot(2, 1, 2)
-        plt.plot(t, z[0], 'rx', markersize=2, label='Corriente medida')
-        plt.plot(t, x_est[0], 'k-', label='Corriente estimada')
+        plt.plot(t, z[1], 'rx', markersize=2, label='Corriente medida')
+        plt.plot(t, x_est[1], 'k-', label='Corriente estimada')
         plt.xlabel('Tiempo [s]')
         plt.ylabel('Corriente [A]')
         plt.title(f"Corriente - {name}")
@@ -170,7 +170,7 @@ def plot_motors_from_csv(csv_path,
 # --- Ejemplo de uso ---
 if __name__ == "__main__":
     # ruta a tu csv combinado
-    csv_path = "datos_2.csv"   # <- cambia a tu archivo
+    csv_path = "datos_1.csv"   # <- cambia a tu archivo
     plot_motors_from_csv(csv_path,
                          outdir='.',        # carpeta donde guardar las imágenes
                          save=True,

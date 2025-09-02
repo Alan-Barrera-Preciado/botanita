@@ -40,17 +40,17 @@ def mergeData(name="datos", mode='timestamp', outdir='.', verbose=True):
     df = pd.DataFrame({
         't': t_izq,
 
-        'vel_izq': z_izq[:, 0],
-        'i_izq':   z_izq[:, 1],
-        'vel_izq_est': x_est_izq[:, 0],
-        'i_izq_est':   x_est_izq[:, 1],
+        'i_izq': z_izq[:, 0],
+        'vel_izq':   z_izq[:, 1],
+        'i_izq_est': x_est_izq[:, 0],
+        'vel_izq_est':   x_est_izq[:, 1],
         'u_izq': u_izq,
         'ref_vel_izq': ref_vel_izq,
 
-        'vel_der': z_der[:, 0],
-        'i_der':   z_der[:, 1],
-        'vel_der_est': x_est_der[:, 0],
-        'i_der_est':   x_est_der[:, 1],
+        'i_der': z_der[:, 0],
+        'vel_der':   z_der[:, 1],
+        'i_der_est': x_est_der[:, 0],
+        'vel_der_est':   x_est_der[:, 1],
         'u_der': u_der,
         'ref_vel_der': ref_vel_der
     })
@@ -226,7 +226,7 @@ class MotorKalmanLQR:
         self.kalman.predecir(u_sat, z)
 
 		    # Guardado para gráficas
-        self.grafica.guardar(z, self.kalman.x_est, t, ref, u=u_sat)
+        self.grafica.guardar(z*np.sign(ref), self.kalman.x_est*np.sign(ref), t, ref, u=u_sat)
 
 		    # PWM (SÍMBOLO del signo y magnitud)
         pwm = int(np.clip(u_sat / 12.0, -1.0, 1.0) * 255)
@@ -397,10 +397,7 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
-    ruta = mergeData("datos", mode='count', outdir="./datasets")
+    ruta = mergeData("datos", mode='count', outdir="/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
 
 if __name__ == '__main__':
     main(dt)
-
-
-
