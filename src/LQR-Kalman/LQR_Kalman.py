@@ -319,11 +319,16 @@ def main(dt):
     # N = 50000  # Número de muestras
 
     # === Inicialización SERIAL ===
-    serialPort = serial.Serial(port=PORT, baudrate=BAUDRATE, timeout=2)
+    serialPort = serial.Serial(port=PORT, baudrate=BAUDRATE, timeout=5)
     serialPort.reset_input_buffer()
     time.sleep(0.5)
 
+    #serialPort.close()
+    #return
+
+
     # === Handshake inicial ===
+    serialPort.flush()
     serialPort.write(bytes([0]))  # HANDSHAKE
     time.sleep(0.5)
     respuesta = serialPort.readline().decode().strip()
