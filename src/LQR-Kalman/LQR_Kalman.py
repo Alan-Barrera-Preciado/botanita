@@ -115,7 +115,7 @@ class FiltroKalman:
         
         self.x_est = np.zeros((2, 1))
         self.x_est = self.sys.F @ self.x_est + self.sys.G * 0 
-        self.P = np.eye(2)
+        self.P = np.eye(2) #np.array([[3,0],[0,0.05]]) #np.eye(2)
         self.P = self.sys.F @ self.P @ self.sys.F.T + self.Q_kalman
     
     def actualizar(self, z):
@@ -133,13 +133,12 @@ class FiltroKalman:
     def predecir(self, u, z): # x_real=medicion # se puede quitar z por que ya se pasa a self.xreal en act.
         # Evolución del sistema (dinámica + ruido)
         F, G = self.sys.F, self.sys.G
-        # self.x_real = F @ self.x_real + G * u + self.ruido_proceso * np.random.randn(2, 1) # solo en sim
-        # self.x_real = z # ya esta en actualizar
+        # self.x_real = F @ self.x_real + G * u + self.ruido_proceso * np.random.randn(2, 1) # Para simular
+        
         # Predicción del filtro
         self.x_est = F @ self.x_est + G * u
         self.P = F @ self.P @ F.T + self.Q_kalman
-                
-    #test
+         
     def setGananciasQR(self, Q_vec, R_vec):
         self.Q_kalman = np.diag(Q_vec)
         self.R_kalman = np.diag(R_vec)
@@ -173,7 +172,6 @@ class ControladorLQR:
         u = (-self.K @ x_est + self.Kr * ref).item()
         return u
     
-    # test
     def setPenalizacionesQR(self, Q_vec, R):
         self.Q_lqr =np.diag(Q_vec)
         self.R_lqr = R * np.array([[1.0]])
@@ -213,25 +211,27 @@ class MotorKalmanLQR:
         self.kalman = FiltroKalman(self.sys) # Q_gain | R_gain
         self.lqr = ControladorLQR(self.sys) # Q_penalizacion | R_penalizacion
         self.grafica = GraficasSistema()
+        self.u=0
         
     def pasoLectura(self, t, ref, z):
-        # z = self.kalman.simular_medicion()
         self.kalman.actualizar(z)
         
-        #u = 5
-        u = self.lqr.controlar(ref, self.kalman.x_est)  # voltios teóricos
-        u_sat = float(np.clip(u, -12.0, 12.0))          # saturación de hardware
-
-	    	# Predicción de Kalman con la acción realmente aplicada
+        self.u = self.lqr.controlar(ref, self.kalman.x_est)  # voltios teóricos
+        u_sat = float(np.clip(self.u, -12.0, 12.0))          # saturación de hardware
+	    # Predicción de Kalman con la acción realmente aplicada
         self.kalman.predecir(u_sat, z)
+        print(self.kalman.x_est)
+		# Guardado para gráficas
+        self.grafica.guardar(np.array([[z[0]],[z[1]]]), np.array([[abs(self.kalman.x_est[0])],[self.kalman.x_est[1]]]), t, ref, u=u_sat)
 
-		    # Guardado para gráficas
-        self.grafica.guardar(z*np.sign(ref), self.kalman.x_est*np.sign(ref), t, ref, u=u_sat)
 
-		    # PWM (SÍMBOLO del signo y magnitud)
+		# PWM (SÍMBOLO del signo y magnitud)
         pwm = int(np.clip(u_sat / 12.0, -1.0, 1.0) * 255)
 
-        return pwm, u_sat # pwm+15 para romper friccion estatica inicial
+        if abs(pwm) <= 10:
+            pwm=(abs(pwm)+10)*np.sign(pwm)
+
+        return pwm, u_sat # pwm+15 para compensar friccion 
 
 class RobotMobilDiff:
     def __init__(self, motorIzquierdo: MotorKalmanLQR, motorDerecho: MotorKalmanLQR, dt, pub_rpm):
@@ -270,9 +270,9 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 1 controlado con LQR y kalman
 motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Izq.kalman.setGananciasQR([1e-15, 5e-15], [1e-20, 9.5e-14]) # Ganancias Q R
+motor_Izq.kalman.setGananciasQR([1e-9, 1e-17], [1e-12, 3.5e-12]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Izq.lqr.setPenalizacionesQR([5e-6, 22], 44) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Izq.lqr.setPenalizacionesQR([1e-1, 160], 25) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ########################## MOTOR 2 (Derecho) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
@@ -288,11 +288,10 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 
 # Declaracion del sistema de MOTOR 2 controlado con LQR y kalman
 motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
-
 # configuraciones Kalman
-motor_Der.kalman.setGananciasQR([1e-15, 5e-15], [1e-25, 13e-14]) # Ganancias Q R
+motor_Der.kalman.setGananciasQR([1e-13, 1e-17], [1e-16, 7.5e-16]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Der.lqr.setPenalizacionesQR([5e-6, 22], 44) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Der.lqr.setPenalizacionesQR([1e-25, 130], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ############# Robot Diferencial #############
 
@@ -309,60 +308,60 @@ def main(dt):
     rospy.Subscriber('/vel_referencia', Float32MultiArray, callback_ref)
     # dt = 0.025
     rate = rospy.Rate(1/dt) 
-   
-    # serialArduino = serial.Serial('/dev/ttyACM0', 115200)
-    # time.sleep(2)
 
     # ############# CONFIGURACIÓN SERIAL #############
     PORT = "/dev/ttyUSB0"
     BAUDRATE = 115200
-    # N = 50000  # Número de muestras
 
     # === Inicialización SERIAL ===
-    serialPort = serial.Serial(port=PORT, baudrate=BAUDRATE, timeout=5)
+    serialPort = serial.Serial(port=PORT, baudrate=BAUDRATE, timeout=2)
+    time.sleep(2)
+
+    # === Protocolo ===
+    START1 = 0xAA
+    START2 = 0x55
+    HANDSHAKE_CMD = 0x01
+    MEASURE_CMD = 0x02
+    HANDSHAKE_ACK = 0xCC
+
+    # === Limpiar buffer antes de empezar ===
     serialPort.reset_input_buffer()
     time.sleep(0.5)
 
-    #serialPort.close()
-    #return
-
-
     # === Handshake inicial ===
-    serialPort.flush()
-    serialPort.write(bytes([0]))  # HANDSHAKE
-    time.sleep(0.5)
-    respuesta = serialPort.readline().decode().strip()
-    if respuesta != "OK":
-        raise Exception("Handshake fallido")
-    print("Handshake exitoso")
+    if not do_handshake(serialPort):
+        raise Exception("No se pudo establecer el handshake con el ESP32")
+
+    print("ya se hico el handshake")
 
     t = 0
     Ref_Izq, Ref_Der = 0.0, 0.0
 
     while not rospy.is_shutdown():
-        serialPort.write(bytes([1]))  # MEASURE_REQUEST
-        serialPort.flush()
-        raw_data = serialPort.readline().decode().strip()
-        if not raw_data:
-            continue
+        # mandar petición de medida
+        send_frame(serialPort, MEASURE_CMD)
+
+        # esperar respuesta (una línea CSV)
+        raw_data = serialPort.readline().decode(errors='ignore').strip()
+        #time.sleep(0.5)               # 200 ms (ajusta a 0.5 si sigue vacio)
         partes = raw_data.split(',')
+
+        #if not raw_data:
+        #    continue
+        #partes = raw_data.split(',')
         if len(partes) == 4:
             try:
-                time.sleep(0.025)
                 # separar de PARTES del serial
                 corrienteD = float(partes[0])
-                # voltajeD = float(partes[1])
                 rpmD = float(partes[1])
                 corrienteI = float(partes[2])
-                # voltajeI = float(partes[4])
                 rpmI = float(partes[3])
-                
-                # ref_Izq = 8 - 8*math.exp(-t)
-                # ref_Izq = 3 + math.sin(t) + math.cos(t)
-                # ref_Der = ref_Izq
-                
+
                 ref_Izq = Ref_Izq
                 ref_Der = Ref_Der  
+
+                rpmD = rpmD * np.sign(bot.motorDerecho.u)
+                rpmI = rpmI * np.sign(bot.motorIzquierdo.u)
 
                 # Orden: z = [i; w] = [corriente (A); velocidad (rad/s)]
                 z_Izq = np.array([
@@ -374,20 +373,19 @@ def main(dt):
                         [rpmD * 0.1047197551]
                       ])
 
+
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
-                '''
-                if t >= 10:
-                    serialPort.write("0,0\n".encode())
-                    break
-                '''
                 if pwm_Izq < 0:
                      rpmI = rpmI*-1
                 if pwm_Der < 0:
                      rpmD = rpmD*-1
+
                 bot.publicarRPM(rpmI, rpmD)
+
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
+                # serialPort.flush()
                 #print(f"[{t}] CorrienteD: {corrienteD:.2f} mA | RPMD: {rpmD:.2f}")
                 #print(f"[{t}] CorrienteI: {corrienteI:.2f} mA | RPMI: {rpmI:.2f}")
 
@@ -402,7 +400,55 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
-    ruta = mergeData("datos", mode='count', outdir="/home/botanita/Desktop/Proyecto-Modular-Botanita/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
+    ruta = mergeData("datos", mode='count', outdir="/home/artificialriot/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
+
+# para comunicacion #
+def send_frame(serialPort, cmd: int):
+    START1 = 0xAA
+    START2 = 0x55
+    serialPort.write(bytes([START1, START2, cmd]))
+    # serialPort.flush()
+
+def hexdump(b: bytes) -> str:
+    return ' '.join(f'{x:02X}' for x in b)
+
+def do_handshake(serialPort, retries=8, wait_after_open=1.0):
+    # === Protocolo ===
+    START1 = 0xAA
+    START2 = 0x55
+    HANDSHAKE_CMD = 0x01
+    MEASURE_CMD = 0x02
+    HANDSHAKE_ACK = 0xCC
+    # esperar que la placa termine de resetear al abrir puerto
+    time.sleep(wait_after_open)
+    serialPort.reset_input_buffer()
+    for attempt in range(1, retries + 1):
+        print(f"[Handshake] Intento {attempt}/{retries} ...")
+        send_frame(serialPort, HANDSHAKE_CMD)
+
+        # leer hasta N bytes que lleguen en el timeout
+        time.sleep(0.05)           # breve espera para que la ESP responda
+        resp = serialPort.read(64) # lee hasta 64 bytes disponibles
+        print("[Handshake] Raw recv:", resp, "HEX:", hexdump(resp))
+
+        # condición de éxito flexible:
+        # 1) si aparece el byte ACK en la respuesta -> OK
+        # 2) o si aparece la secuencia [AA,55,ACK] en la respuesta -> OK
+        if resp:
+            if bytes([HANDSHAKE_ACK]) in resp:
+                print("[Handshake] ACK detectado en respuesta.")
+                return True
+            if bytes([START1, START2, HANDSHAKE_ACK]) in resp:
+                print("[Handshake] Frame completo detectado.")
+                return True
+
+        # si no, esperar un poco y reintentar (la ESP puede tardar en arrancar)
+        time.sleep(0.2)
+
+    print("[Handshake] Fallido tras reintentos.")
+    return False
+
+#####################
 
 if __name__ == '__main__':
     main(dt)

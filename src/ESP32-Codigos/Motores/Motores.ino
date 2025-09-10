@@ -1,32 +1,84 @@
-#include <Wire.h>
-#include <INA226_WE.h>
+#include "funciones.h" // mas includes en este .h
 
 // Dirección I2C del INA226
+#define I2C_MOTOR_LEFT_ADD  0x40
 #define I2C_MOTOR_RIGHT_ADD 0x41
-#define I2C_MOTOR_LEFT_ADD 0x40
 
-INA226_WE ina226MD(I2C_MOTOR_RIGHT_ADD);
-INA226_WE ina226MI(I2C_MOTOR_LEFT_ADD);
+// Declaracion objetos INA226
+
+INA226_WE ina226MD = INA226_WE(I2C_MOTOR_RIGHT_ADD);
+INA226_WE ina226MI = INA226_WE(I2C_MOTOR_LEFT_ADD);
 
 // Protocolo
-#define HANDSHAKE 0
-#define MEASURE_REQUEST 1
+// Handshake robusto (frame + timeout)
+#define HANDSHAKE_START1 0xAA
+#define HANDSHAKE_START2 0x55
+
+#define HANDSHAKE_CMD    0x01   // comando handshake
+#define MEASURE_CMD      0x02   // comando de medición
+#define HANDSHAKE_ACK    0xCC   // respuesta del ESP
+
+unsigned long handshakeTimeout = 1000; // ms
+int maxRetries = 5;
+
+void clearSerialInput() {
+  while (Serial.available()) Serial.read();
+}
+
+bool waitForFrame(unsigned long timeout, uint8_t &b1, uint8_t &b2, uint8_t &cmd) {
+  unsigned long start = millis();
+  while (millis() - start < timeout) {
+    // buscamos los bytes de inicio
+    if (Serial.available() >= 3) {
+      b1 = Serial.read();
+      b2 = Serial.read();
+      cmd = Serial.read();
+      return true;
+    }
+    delay(1);
+  }
+  return false;
+}
+
+bool doHandshake() {
+  clearSerialInput();
+  int tries = 0;
+  while (tries++ < maxRetries) {
+    // Enviar petición de handshake (host debería hacerlo; aquí ESP puede iniciar)
+    Serial.write(HANDSHAKE_START1);
+    Serial.write(HANDSHAKE_START2);
+    Serial.write(HANDSHAKE_CMD);
+    Serial.flush(); // espera transmisión salida (opcional)
+
+    // Esperar ACK
+    uint8_t b1, b2, cmd;
+    if (waitForFrame(handshakeTimeout, b1, b2, cmd)) {
+      // Si recibimos un frame, validar y responder
+      if (b1 == HANDSHAKE_START1 && b2 == HANDSHAKE_START2 && cmd == HANDSHAKE_CMD) {
+        Serial.write(HANDSHAKE_ACK);
+        return true;
+      }
+    }
+    delay(100); // pequeño retardo antes de reintento
+  }
+  return false;
+}
 
 int inByte;
 String outstr;
 String idxStr;
 
-// Pines PWM
-int pwmRAdelante = 15;
-int pwmRAtras = 2;
-
-int pwmLAdelante = 4; 
-int pwmLAtras  = 16;
 
 // pines encoders
+int encoderL = 32;
+int encoderR = 23;
 
-int encoderL = 17;
-int encoderR = 5;
+// Pines PWM
+int pwmLAdelante = 33; // no se puede 35 
+int pwmLAtras  = 25;
+
+int pwmRAdelante = 26;
+int pwmRAtras = 27;
 
 // incrementos de encoders
 
@@ -43,8 +95,12 @@ float dt = 0;
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);
-  Wire.begin();
+  //unsigned long start = millis();
+  //while (!Serial && millis() - start < 2000) 
+  while(!Serial);
+  // Inicializar I2C
+  Wire.begin(21, 22);
+  delay(200); // dar tiempo al host para abrir puerto
 
   // Ina Setup
   ina226Setup(ina226MD, "Derecha");
@@ -55,151 +111,88 @@ void setup() {
   setupEncoder(encoderL, "L");
   
   // PWM setup
-  pwmSetup(pwmRAdelante, pwmRAtras);
   pwmSetup(pwmLAdelante, pwmLAtras);
+  pwmSetup(pwmRAdelante, pwmRAtras);
+
+  clearSerialInput();
+
+  if (doHandshake()) {
+    Serial.println("Handshake OK");
+  } else {
+    Serial.println("Handshake FALLó");
+  }
 }
 
-int test = 0;
+// ===== Loop =====
+// VARIABLES PARA PARSER
+static uint8_t serial_state = 0; // 0 = waiting start1, 1 = waiting start2, 2 = waiting cmd
+static char asciiBuf[64];
+static uint8_t asciiPos = 0;
+
+void handleCommand(uint8_t cmd) {
+  if (cmd == MEASURE_CMD) {
+    // medida rápida
+    tiempoActual = millis();
+    dt = (tiempoActual - tiempoAnterior) / 1000.0f;
+    tiempoAnterior = tiempoActual;
+
+    float rightRPM = calcularRPM(contadorR, 820, dt);
+    float leftRPM  = calcularRPM(contadorL, 820, dt);
+    float rightI   = ina226Read(ina226MD, "Derecha");
+    float leftI    = ina226Read(ina226MI, "Izquierda");
+
+    // Enviar CSV (formato: corrienteD(mA), rpmD, corrienteI(mA), rpmI)
+    // evita muchos Serial.println debug
+    Serial.printf("%.2f,%.2f,%.2f,%.2f\n", rightI, rightRPM, leftI, leftRPM);
+  }
+  else if (cmd == HANDSHAKE_CMD) {
+    // responder ACK completo
+    Serial.write(HANDSHAKE_START1);
+    Serial.write(HANDSHAKE_START2);
+    Serial.write(HANDSHAKE_ACK);
+    // opcional: delay(2); Serial.println("Handshake OK");
+  }
+}
+
+void processAsciiLine(const char *line) {
+  // ejemplo: "150,150"
+  int comma = -1;
+  for (int i=0; line[i] != '\0'; ++i) if (line[i] == ',') { comma = i; break; }
+  if (comma > 0) {
+    int pwmL = atoi(String(line).substring(0, comma).c_str()); // o parse manual
+    int pwmR = atoi(String(line + comma + 1).c_str());
+    // aplica control
+    changePWM(pwmRAdelante, pwmRAtras, pwmR);
+    changePWM(pwmLAdelante, pwmLAtras, pwmL);
+  }
+}
 
 void loop() {
-  if (Serial.available() > 0) {
-    // Serial.flush();
-    inByte = Serial.read();
-
-    if (inByte == HANDSHAKE) {
-      Serial.println("OK");
+  // leer todos los bytes disponibles
+  while (Serial.available()) {
+    int c = Serial.read();
+    if (serial_state == 0) {
+      if ((uint8_t)c == HANDSHAKE_START1) {
+        serial_state = 1;
+      } else {
+        // acumular ASCII hasta '\n'
+        if (c == '\n' || asciiPos >= (sizeof(asciiBuf)-2)) {
+          asciiBuf[asciiPos] = '\0';
+          if (asciiPos > 0) processAsciiLine(asciiBuf);
+          asciiPos = 0;
+        } else if (c != '\r') {
+          asciiBuf[asciiPos++] = (char)c;
+        }
+      }
+    } else if (serial_state == 1) {
+      if ((uint8_t)c == HANDSHAKE_START2) serial_state = 2;
+      else serial_state = ((uint8_t)c == HANDSHAKE_START1) ? 1 : 0;
+    } else if (serial_state == 2) {
+      uint8_t cmd = (uint8_t)c;
+      serial_state = 0;
+      handleCommand(cmd);
     }
-
-    else if (inByte >= MEASURE_REQUEST) {
-      // Leer y enviar datos (corriente)
-      tiempoActual = millis();
-      dt = (tiempoActual - tiempoAnterior) / 1000.0; // pasa a segundos
-      tiempoAnterior = tiempoActual;
-
-      String rigthRPM = calcularRPM(contadorR, 820, dt);
-      String leftRPM = calcularRPM(contadorL, 820, dt);
-      
-      String rightRead = ina226Read(ina226MD, "Derecha");
-      String leftRead = ina226Read(ina226MI, "Izq");
-
-      Serial.println("\n");
-      // rightRead + "," + rigthRPM + "," + leftRead + "," + leftRPM
-      outstr = rightRead + "," + rigthRPM + "," + leftRead + "," + leftRPM;
-      Serial.println(outstr);
-
-      // Control
-      control();
-
-      //delay(25); // dt      
-
-    } //
   }
-}
 
-
-// Funciones 
-
-void ina226Setup(INA226_WE &ina226, String name){
-  // Wire.begin();
-  ina226.init();
-  //ina226.setResistorRange(0.002, 10.0);
-  ina226.setAverage(AVERAGE_64);
-  ina226.setConversionTime(CONV_TIME_332);
-
-  ina226.waitUntilConversionCompleted();
-  //Serial.println(name);
-  //Serial.println("Setup Done");
-}
-
-String ina226Read(INA226_WE &ina226, String name){
-  float current = ina226.getCurrent_mA();
-  float voltage = ina226.getBusVoltage_V();
-  float power   = ina226.getBusPower();
-
-  // Formato: corriente,voltaje,potencia
-  // String outstr = String(current, 3) + "," + String(voltage, 3) + "," + String(power, 3);
-  String outstr = String(current, 3);
-  // Serial.println(outstr);
-
-  return outstr;
-}
-
-String getFromPy(){
-  // Esperar índice desde Python y responderlo
-  while (!Serial.available());
-  String idxStr = Serial.readStringUntil('\n');
-  return idxStr;
-  // Serial.println(idxStr); // reenviarlo para validación en Python
-}
-
-void pwmSetup(int pinAdelante, int pinAtras){
-  pinMode(pinAdelante, OUTPUT);
-  analogWrite(pinAdelante, 0);
-  pinMode(pinAtras, OUTPUT);
-  analogWrite(pinAtras, 0);
-}
-
-void changePWM(int pinAdelante, int pinAtras, int trabajo){
-  if(trabajo >= 0){
-    analogWrite(pinAtras, 0);
-    analogWrite(pinAdelante, trabajo);  
-  } else {
-    analogWrite(pinAdelante, 0);
-    analogWrite(pinAtras, trabajo*-1); 
-  }
-}
-
-// para encoder 
-
-void IRAM_ATTR incrementarR(){
-  contadorR++;
-}
-
-
-void IRAM_ATTR incrementarL(){
-  contadorL++;
-}
-
-
-void setupEncoder(int pinInterrupcion, String RL){
-  pinMode(pinInterrupcion, INPUT_PULLUP);
-  if(RL == "R"){
-    attachInterrupt(digitalPinToInterrupt(pinInterrupcion), incrementarR, RISING);  
-  } else if (RL == "L") {
-    attachInterrupt(digitalPinToInterrupt(pinInterrupcion), incrementarL, RISING);  
-  }
-  
-}
-
-void serialToArray(int *arrayDestino) {
-  String cad = Serial.readStringUntil('\n');
-  cad.trim();
-
-  // Serial.println("Cadena original: [" + cad + "]");
-
-  int pwmR = 0, pwmL = 0;
-  sscanf(cad.c_str(), "%*[^0-9-]%d,%d", &pwmR, &pwmL);  // limpia basura
-
-  arrayDestino[0] = pwmR;
-  arrayDestino[1] = pwmL;
-}
-
-void control(){
-  serialToArray(ArrayControl);
-  changePWM(pwmRAdelante, pwmRAtras, ArrayControl[0]);  // R
-  changePWM(pwmLAdelante, pwmLAtras, ArrayControl[1]);  // L
-}
-
-String calcularRPM(volatile unsigned long &contadorPulsos, int res, float dt){
-  noInterrupts();
-
-  int intervaloPulsos = contadorPulsos;
-  contadorPulsos = 0;
-  interrupts();
-
-  float rpm = (intervaloPulsos/dt*60/res);
-  String outstr = String(rpm, 3);
-  // Serial.println(outstr);
-
-  return outstr;
+  // aquí puedes hacer tareas periódicas no bloqueantes si hace falta
 }
