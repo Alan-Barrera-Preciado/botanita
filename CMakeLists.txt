@@ -9,8 +9,11 @@ project(botanita)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  roscpp
   rospy
   std_msgs
+  sensor_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,6 +110,7 @@ catkin_package(
 #  LIBRARIES botanita
 #  CATKIN_DEPENDS geometry_msgs rospy std_msgs
 #  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs tf
 )
 
 ###########

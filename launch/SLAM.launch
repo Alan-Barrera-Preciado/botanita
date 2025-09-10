@@ -1,0 +1,48 @@
+<launch>
+    <!-- Lanzar nodo RPLIDAR -->
+    <node pkg="rplidar_ros" type="rplidarNode" name="rplidar_node" output="screen">
+        <param name="serial_port" value="/dev/ttyUSB0"/>
+        <param name="serial_baudrate" value="115200"/>
+        <param name="frame_id" value="laser"/>
+        <param name="angle_compensate" value="true"/>
+    </node>
+
+    <!-- Publicar transform estático entre base_link y laser -->
+    <node pkg="tf" type="static_transform_publisher" name="laser_tf"
+          args="0 0 0 0 0 0 base_link laser 100"/>
+    
+    <!-- Nodo de odometría falsa -->
+    <node pkg="botanita" type="fake_odom.py" name="fake_odom" output="screen"/>
+
+    <!-- Nodo GMAPPING -->
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+        <!-- Frame de odometría -->
+        <param name="base_frame" value="base_link"/>
+        <param name="odom_frame" value="odom"/>
+        <param name="map_frame" value="map"/>
+
+        <!-- Parámetros de actualización del mapa -->
+        <param name="delta" value="0.05"/>          <!-- distancia mínima para aceptar nueva lectura -->
+        <param name="delta_theta" value="0.05"/>    <!-- rotación mínima para aceptar nueva lectura -->
+        <param name="linear_update" value="0.05"/>  <!-- equivalente a delta -->
+        <param name="angular_update" value="0.05"/> <!-- equivalente a delta_theta -->
+        <param name="map_update_interval" value="1.0"/> <!-- actualizar mapa cada segundo -->
+        
+        <!-- Rango del LIDAR -->
+        <param name="maxUrange" value="12.0"/>
+        <param name="sigma" value="0.05"/>
+        <param name="kernelSize" value="1"/>
+        <param name="lstep" value="0.05"/>
+        <param name="astep" value="0.05"/>
+        <param name="iterations" value="5"/>
+        <param name="lsigma" value="0.075"/>
+        <param name="ogain" value="3.0"/>
+        <param name="xmin" value="-10.0"/>
+        <param name="ymin" value="-10.0"/>
+        <param name="xmax" value="10.0"/>
+        <param name="ymax" value="10.0"/>
+        <param name="delta" value="0.05"/>
+        <param name="res" value="0.05"/> <!-- resolución del mapa en metros/pixel -->
+    </node>
+</launch>
+
