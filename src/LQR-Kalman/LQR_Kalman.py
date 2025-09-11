@@ -340,6 +340,10 @@ def main(dt):
 
     print("ya se hico el handshake")
 
+    Do_CSV = rospy.get_param("~Do_CSV", False)
+
+    rospy.loginfo(f"CSV logging {'enabled' if Do_CSV else 'disabled'}")
+
     t = 0
     Ref_Izq, Ref_Der = 0.0, 0.0
 
@@ -406,9 +410,8 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
-    # ruta = mergeData("datos", mode='count', outdir="/home/artificialriot/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
-    ruta = mergeData("datos", mode='count', outdir=dataset_dir)
-
+    if Do_CSV:
+        ruta = mergeData("datos", mode='count', outdir=dataset_dir)
 # para comunicacion #
 def send_frame(serialPort, cmd: int):
     START1 = 0xAA
