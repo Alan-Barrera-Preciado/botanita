@@ -1,5 +1,6 @@
 <launch>
-<node pkg="botanita" name="Control_Motores" type="LQR_Kalman.py" output="screen"/>
-<param name="Do_CSV" value="False">
-<node pkg="botanita" name="Odometria_Botanita" type="Odometria.py"/>
+  <node pkg="botanita" name="Control_Motores" type="LQR_Kalman.py" output="screen">
+    <param name="Do_CSV" value="True"/>
+  </node>
+  <node pkg="botanita" name="Odometria_Botanita" type="Odometria.py"/>
 </launch>

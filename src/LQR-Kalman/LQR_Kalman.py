@@ -226,7 +226,7 @@ class MotorKalmanLQR:
         u_sat = float(np.clip(self.u, -12.0, 12.0))          # saturación de hardware
 	    # Predicción de Kalman con la acción realmente aplicada
         self.kalman.predecir(u_sat, z)
-        print(self.kalman.x_est)
+        
 		# Guardado para gráficas
         self.grafica.guardar(np.array([[z[0]],[z[1]]]), np.array([[abs(self.kalman.x_est[0])],[self.kalman.x_est[1]]]), t, ref, u=u_sat)
 
@@ -338,7 +338,7 @@ def main(dt):
     if not do_handshake(serialPort):
         raise Exception("No se pudo establecer el handshake con el ESP32")
 
-    print("ya se hico el handshake")
+    print("ya se hizo el handshake")
 
     Do_CSV = rospy.get_param("~Do_CSV", False)
 
@@ -410,6 +410,8 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
+    print(Do_CSV)
+
     if Do_CSV:
         ruta = mergeData("datos", mode='count', outdir=dataset_dir)
 # para comunicacion #
