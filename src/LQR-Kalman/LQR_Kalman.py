@@ -310,7 +310,7 @@ def main(dt):
     rate = rospy.Rate(1/dt) 
 
     # ############# CONFIGURACIÓN SERIAL #############
-    PORT = "/dev/ttyUSB0"
+    PORT = "/dev/esp32"
     BAUDRATE = 115200
 
     # === Inicialización SERIAL ===
