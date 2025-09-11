@@ -7,6 +7,7 @@ import numpy as np
 import math
 from scipy.signal import cont2discrete
 from scipy.linalg import solve_discrete_are
+import rospkg
 
 import os
 from datetime import datetime
@@ -16,6 +17,11 @@ from std_msgs.msg import Float32MultiArray
 
 rospy.init_node('controlador_motores')
 pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
+
+rospack = rospkg.RosPack()
+pkg_path = rospack.get_path("botanita")   # nombre del paquete ROS
+dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
+
 
 def _next_count_filename(path):
     """Si path existe, devuelve path_1, path_2, ..."""
@@ -400,7 +406,8 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
-    ruta = mergeData("datos", mode='count', outdir="/home/artificialriot/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
+    # ruta = mergeData("datos", mode='count', outdir="/home/artificialriot/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
+    ruta = mergeData("datos", mode='count', outdir=dataset_dir)
 
 # para comunicacion #
 def send_frame(serialPort, cmd: int):
