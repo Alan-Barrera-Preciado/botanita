@@ -405,7 +405,8 @@ def main(dt):
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
     if Do_CSV:
-        ruta = mergeData("datos", mode='count', outdir="/home/artificialriot/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
+        CSV_Name = rospy.get_param("~CSV_Name", "datos")
+        ruta = mergeData(CSV_Name, mode='count', outdir="/home/artificialriot/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
 
 # para comunicacion #
 def send_frame(serialPort, cmd: int):
