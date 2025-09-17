@@ -1,5 +1,4 @@
 <launch>
-
    <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
       <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
       <param name="serial_baudrate"     type="int"    value="115200"/>
@@ -13,4 +12,5 @@
       <param name="CSV_Name" value="datos"/>
    </node>
    <node pkg="botanita" name="Odometria_Botanita" type="Odometria.py"/>
+   
 </launch>

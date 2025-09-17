@@ -7,6 +7,7 @@ import numpy as np
 import math
 from scipy.signal import cont2discrete
 from scipy.linalg import solve_discrete_are
+import rospkg
 
 import os
 from datetime import datetime
@@ -16,6 +17,11 @@ from std_msgs.msg import Float32MultiArray
 
 rospy.init_node('controlador_motores')
 pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
+
+rospack = rospkg.RosPack()
+pkg_path = rospack.get_path("botanita")   # nombre del paquete ROS
+dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
+
 
 def _next_count_filename(path):
     """Si path existe, devuelve path_1, path_2, ..."""
@@ -220,7 +226,7 @@ class MotorKalmanLQR:
         u_sat = float(np.clip(self.u, -12.0, 12.0))          # saturación de hardware
 	    # Predicción de Kalman con la acción realmente aplicada
         self.kalman.predecir(u_sat, z)
-        print(self.kalman.x_est)
+        
 		# Guardado para gráficas
         self.grafica.guardar(np.array([[z[0]],[z[1]]]), np.array([[abs(self.kalman.x_est[0])],[self.kalman.x_est[1]]]), t, ref, u=u_sat)
 
@@ -270,7 +276,7 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 1 controlado con LQR y kalman
 motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Izq.kalman.setGananciasQR([1e-9, 1e-17], [1e-12, 3.5e-12]) # Ganancias Q R
+motor_Izq.kalman.setGananciasQR([1e-9, 1e-17], [3e-12, 4.3e-12]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
 motor_Izq.lqr.setPenalizacionesQR([1e-1, 160], 25) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
@@ -289,9 +295,9 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 2 controlado con LQR y kalman
 motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Der.kalman.setGananciasQR([1e-13, 1e-17], [1e-16, 7.5e-16]) # Ganancias Q R
+motor_Der.kalman.setGananciasQR([1e-9, 1e-17], [3e-12, 4.3e-12]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Der.lqr.setPenalizacionesQR([1e-25, 130], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Der.lqr.setPenalizacionesQR([1e-1, 160], 45) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ############# Robot Diferencial #############
 
@@ -332,7 +338,7 @@ def main(dt):
     if not do_handshake(serialPort):
         raise Exception("No se pudo establecer el handshake con el ESP32")
 
-    print("ya se hico el handshake")
+    print("ya se hizo el handshake")
 
     Do_CSV = rospy.get_param("~Do_CSV", False)
 
@@ -404,9 +410,10 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
+
     if Do_CSV:
         CSV_Name = rospy.get_param("~CSV_Name", "datos")
-        ruta = mergeData(CSV_Name, mode='count', outdir="/home/artificialriot/catkin_ws/src/botanita/src/LQR-Kalman/datasets")
+        ruta = mergeData("datos", mode='count', outdir=dataset_dir)
 
 # para comunicacion #
 def send_frame(serialPort, cmd: int):
