@@ -1,299 +1,411 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+A* sobre PGM con dilatación y opción para VOLTEAR el mapa en Y.
+Adaptado para ser ejecutado dentro de un paquete ROS.
+"""
 import math
-from PIL import Image, ImageDraw
-import numpy as np
-
-import yaml
 import os
+import yaml
+import csv
+from PIL import Image
+import numpy as np
 import matplotlib.pyplot as plt
+from scipy.ndimage import binary_dilation
+import sys 
 
-# --- Clase para cada Nodo de la cuadrícula ---
+# --- Importe y Configuración de Rutas ROS ---
+try:
+    import rospkg
+    
+    # Reemplaza 'botanita' con el nombre exacto de tu paquete ROS si es diferente
+    ROS_PACKAGE_NAME = "botanita" 
+    rospack = rospkg.RosPack()
+    pkg_path = rospack.get_path(ROS_PACKAGE_NAME)
+    
+    # Rutas absolutas para los mapas (Input)
+    RUTA_PGM = os.path.join(pkg_path, "src", "Mapas", "casa_alan.pgm")
+    RUTA_YAML = os.path.join(pkg_path, "src", "Mapas", "casa_alan.yaml")
+    
+    # Rutas absolutas para la trayectoria (Output)
+    CSV_DIR = os.path.join(pkg_path, "src", "Mapas", "Trayectorias")
+    RUTA_CSV_SALIDA = os.path.join(CSV_DIR, "ruta_metros.csv")
+    
+    # Crear el directorio de salida si no existe
+    if not os.path.exists(CSV_DIR):
+        os.makedirs(CSV_DIR)
+        print(f"[Info] Directorio de trayectorias creado: {CSV_DIR}")
+        
+    print(f"[Info] Usando rutas absolutas ROS desde el paquete '{ROS_PACKAGE_NAME}'.")
+
+except Exception as e:
+    # Fallback si rospkg falla o el paquete no se encuentra (e.g., ejecutando fuera de un entorno ROS)
+    print(f"AVISO: Fallo al configurar rutas ROS ({e}). Usando rutas relativas por defecto.")
+    RUTA_PGM = "casa_alan.pgm"
+    RUTA_YAML = "casa_alan.yaml"
+    RUTA_CSV_SALIDA = "ruta_metros.csv"
+
+# ---------------- Parámetros editables ----------------
+RADIO_DILATACION = 2             # píxeles para inflar paredes
+UMBRAL_LIBRE = 250               # >= blanco
+FIGSIZE = (12,12)
+
+# --- Ajustes de Y / volteo ---
+FLIP_MAP_Y = True
+FLIP_Y_OVERRIDE = None
+
+# --- Parámetros de A* ---
+# Heurística: Usa "manhattan" o "euclidiana"
+HEURISTICA_DISTANCIA = "manhattan" 
+# Vecindario: Usa "moore" (ortogonal + diagonal) o "neumann" (solo ortogonal)
+TIPO_VECINDARIO = "neumann"      
+# -----------------------------------------------------
+
+# ---------------- Nodo y A* (tu versión) ----------------
 class Nodo:
-    """
-    Representa un nodo en la cuadrícula de búsqueda.
-    Cada nodo tiene una posición, un padre (para reconstruir el camino),
-    y los valores g, h, f utilizados por el algoritmo A*.
-    """
+    # Se corrige el nombre de los métodos de inicialización y comparación
     def __init__(self, posicion, padre=None, costo=0):
-        self.posicion = posicion  # Una tupla (fila, columna)
+        self.posicion = posicion
         self.padre = padre
         self.costo = costo
-
-        self.g = 0  # Costo desde el inicio hasta este nodo
-        self.h = 0  # Costo heurístico estimado hasta el final
-        self.f = 0  # Costo total (g + h)
-
+        self.g = float('inf')
+        self.h = 0
+        self.f = float('inf')
     def __eq__(self, otro):
-        # Dos nodos son iguales si sus posiciones son iguales
         return self.posicion == otro.posicion
 
-    def __repr__(self):
-        # Representación en string para facilitar la depuración
-        return f"Nodo({self.posicion}, {self.costo}, g={self.g}, h={self.h}, f={self.f})"
-    
-# --- Clase principal del Algoritmo A* ---
 class BusquedaAEstrella:
-    """
-    Implementa el algoritmo A* para encontrar el camino más corto en una cuadrícula.
-    """
-    def __init__(self, cuadricula, tipo_distancia="manhattan"):
+    # Se corrige el nombre del método de inicialización
+    def __init__(self, cuadricula, tipo_distancia=HEURISTICA_DISTANCIA, tipo_vecindario=TIPO_VECINDARIO): 
         self.cuadricula = cuadricula
         self.alto = len(cuadricula)
         self.ancho = len(cuadricula[0])
-
         self.tipo_distancia = tipo_distancia
+        self.tipo_vecindario = tipo_vecindario
+
+        # VALIDACIÓN DE HEURÍSTICA
+        if self.tipo_distancia not in ["manhattan", "euclidiana"]:
+            print(f"ERROR FATAL: El parámetro HEURISTICA_DISTANCIA ('{self.tipo_distancia}') es inválido.")
+            print("Debe ser 'manhattan' o 'euclidiana'.")
+            sys.exit(1)
+         
+        # VALIDACIÓN DE VECINDARIO
+        if self.tipo_vecindario not in ["moore", "neumann"]:
+            print(f"ERROR FATAL: El parámetro TIPO_VECINDARIO ('{self.tipo_vecindario}') es inválido.")
+            print("Debe ser 'moore' (diagonal) o 'neumann' (ortogonal).")
+            sys.exit(1)
+
 
     def buscar(self, inicio, fin):
-        """
-        Ejecuta el algoritmo A* y devuelve la ruta como una lista de posiciones.
-        """
+        # Chequeo rápido de inicio/fin inválidos en la cuadrícula
+        if inicio[0] < 0 or inicio[0] >= self.alto or inicio[1] < 0 or inicio[1] >= self.ancho or self.cuadricula[inicio[0]][inicio[1]] == 1:
+            return "ERROR_INICIO_INVALIDO"
+        if fin[0] < 0 or fin[0] >= self.alto or fin[1] < 0 or fin[1] >= self.ancho or self.cuadricula[fin[0]][fin[1]] == 1:
+            return "ERROR_FIN_INVALIDO"
+         
         nodo_inicio = Nodo(inicio)
         nodo_fin = Nodo(fin)
+        nodo_inicio.g = 0
+        nodo_inicio.h = self._heuristica(inicio, fin)
+        nodo_inicio.f = nodo_inicio.h
 
-        lista_abierta = []
+        lista_abierta = [nodo_inicio]
         lista_cerrada = []
 
-        # 1. Inicialización
-        lista_abierta.append(nodo_inicio)
-
-        # 2. Bucle principal
         while lista_abierta:
-            # a. Encontrar el nodo con el menor costo f en la lista abierta
-            nodo_actual = min(lista_abierta, key=lambda nodo: nodo.f)
-
-            # b. Mover el nodo actual de la lista abierta a la cerrada
+            nodo_actual = min(lista_abierta, key=lambda n: n.f)
             lista_abierta.remove(nodo_actual)
             lista_cerrada.append(nodo_actual)
 
-            # c. Si encontramos el destino, reconstruimos el camino y terminamos
-            if nodo_actual == nodo_fin:
+            if nodo_actual.posicion == nodo_fin.posicion:
                 return self._reconstruir_camino(nodo_actual)
 
-            # d. Explorar los vecinos
-            vecinos = self._obtener_vecinos(nodo_actual, self.tipo_distancia)
-            for vecino in vecinos:
-                #print(vecino)
-                # Ignorar si el vecino ya está en la lista cerrada
-                #casilla = vecino.posicion[0:2]
-                #costo = vecino[2]
-                if vecino in lista_cerrada:
+            for vecino in self._obtener_vecinos(nodo_actual):
+                if any(v.posicion == vecino.posicion for v in lista_cerrada):
                     continue
 
-                # Calcular el costo g tentativo
-                g_tentativo = nodo_actual.g + vecino.costo  # Asumimos costo de 1 entre nodos adyacentes
+                g_tentativo = nodo_actual.g + vecino.costo
+                existente = next((v for v in lista_abierta if v.posicion == vecino.posicion), None)
 
-                # Si el vecino es nuevo o encontramos un camino mejor
-                if g_tentativo < vecino.g or vecino not in lista_abierta:
+                if existente is None or g_tentativo < existente.g:
                     vecino.g = g_tentativo
                     vecino.h = self._heuristica(vecino.posicion, nodo_fin.posicion)
                     vecino.f = vecino.g + vecino.h
                     vecino.padre = nodo_actual
-
-                    if vecino not in lista_abierta:
+                    if existente is None:
                         lista_abierta.append(vecino)
-        
-        # Si la lista abierta se vacía y no encontramos el destino, no hay camino
-        return None
+         
+        return "ERROR_RUTA_NO_ALCANZABLE"
 
-    def _obtener_vecinos(self, nodo, tipo_distancia):
-        
-        if tipo_distancia == "manhattan":
-            vecinos = [(0, 1,1), (0, -1,1), (1, 0,1), (-1, 0,1)] # (x,y,costo)
-        elif tipo_distancia == "euclidiana":
-            vecinos = [(0, 1,1), (1, 0,1), (0, -1,1), (-1, 0,1), (1, 1,1.41), (-1, -1,1.41), (1, -1,1.41), (-1, 1,1.41)]
+    def _obtener_vecinos(self, nodo):
+         
+        # Lógica para seleccionar el vecindario (Moore o von Neumann)
+        movimientos_ortogonales = [(0,1,1), (0,-1,1), (1,0,1), (-1,0,1)]
+        movimientos_diagonales = [(1,1,1.4), (-1,-1,1.4), (1,-1,1.4), (-1,1,1.4)]
+         
+        if self.tipo_vecindario == "moore":
+            movimientos = movimientos_ortogonales + movimientos_diagonales
+        elif self.tipo_vecindario == "neumann":
+            movimientos = movimientos_ortogonales
+        else:
+            movimientos = movimientos_ortogonales 
 
-        """
-        Obtiene los nodos vecinos transitables (no obstáculos).
-        """
-        posiciones_vecinas = []
-        # Movimientos en 4 direcciones (arriba, abajo, izquierda, derecha)
-        for dr, dc, costo in vecinos:
+        vecinos = []
+        for dr, dc, costo in movimientos:
             r, c = nodo.posicion[0] + dr, nodo.posicion[1] + dc
+            if 0 <= r < self.alto and 0 <= c < self.ancho and self.cuadricula[r][c] == 0:
+                vecinos.append(Nodo((r, c), costo=costo))
+        return vecinos
 
-            # Verificar si la posición está dentro de la cuadrícula
-            if 0 <= r < self.alto and 0 <= c < self.ancho:
-                # Verificar si no es un obstáculo (asumimos que 1 es obstáculo)
-                if self.cuadricula[r][c] == 0:
-                    posiciones_vecinas.append(Nodo((r, c), costo=costo))
-        
-        return posiciones_vecinas
-
-    def _heuristica(self, pos_a, pos_b):
-        """
-        Calcula la distancia de Manhattan como heurística.
-        """
-        
+    def _heuristica(self, a, b):
         if self.tipo_distancia == "manhattan":
-            distancia = abs(pos_a[0] - pos_b[0]) + abs(pos_a[1] - pos_b[1])
-        elif self.tipo_distancia == "euclidiana":
-            distancia = math.sqrt((pos_a[0] - pos_b[0]) ** 2 + (pos_a[1] - pos_b[1]) ** 2)
-            
-        return distancia
+            return abs(a[0]-b[0]) + abs(a[1]-b[1])
+        # Ya que se validó, si no es manhattan, debe ser euclidiana.
+        else: 
+             return math.hypot(a[0]-b[0], a[1]-b[1])
 
     def _reconstruir_camino(self, nodo_final):
-        """
-        Reconstruye el camino desde el nodo final hasta el inicio
-        siguiendo los punteros 'padre'.
-        """
         camino = []
         actual = nodo_final
-        while actual is not None:
+        while actual:
             camino.append(actual.posicion)
             actual = actual.padre
-        return camino[::-1]  # Devolver el camino en orden de inicio a fin
+        return camino[::-1]
 
-def cargar_y_procesar_mapa_pgm(ruta_archivo, umbral_obstaculo=240):
-    """
-    Carga un mapa desde un archivo PGM y lo convierte a una cuadrícula binaria.
+# ---------------- Procesamiento PGM / dilatación ----------------
+def cargar_mapa_pgm(ruta_pgm, umbral_libre=UMBRAL_LIBRE, flip_y=False):
+    if not os.path.exists(ruta_pgm):
+        # Muestra la ruta que no se encontró
+        raise FileNotFoundError(f"No existe PGM en la ruta absoluta: '{ruta_pgm}'")
+    with Image.open(ruta_pgm) as img:
+        mapa = np.array(img.convert('L'))
+    if flip_y:
+        print("[Info] Volteando verticalmente el mapa (flip Y) para corregir orientación.")
+        mapa = np.flipud(mapa)
+    cuadricula = np.ones_like(mapa, dtype=np.uint8)
+    cuadricula[mapa >= umbral_libre] = 0    # 0 libre, 1 obstáculo
+    print(f"Mapa '{ruta_pgm}' cargado: {mapa.shape[1]}x{mapa.shape[0]} píxeles. (flip_y={flip_y})")
+    return mapa, cuadricula
 
-    Args:
-        ruta_archivo (str): La ruta al archivo .pgm.
-        umbral_obstaculo (int): El valor de píxel por debajo del cual se 
-                                considera un obstáculo. En los mapas de ROS,
-                                los obstáculos son cercanos a 0 y el espacio
-                                libre es cercano a 254/255.
+def dilatar_paredes(cuadricula, radio_dilatacion=3):
+    """Dilata únicamente las paredes (1) sin tocar el fondo libre."""
+    if radio_dilatacion <= 0:
+        return cuadricula
+    obst = cuadricula == 1
+    estructura = np.ones((2*radio_dilatacion+1, 2*radio_dilatacion+1), dtype=bool)
+    obst_dil = binary_dilation(obst, structure=estructura)
+    cuadricula_dilatada = cuadricula.copy()
+    cuadricula_dilatada[obst_dil] = 1
+    return cuadricula_dilatada
 
-    Returns:
-        list: Una lista de listas (cuadrícula) donde 0 es transitable y 1 es un obstáculo.
-    """
-    try:
-        # 1. Abrir la imagen PGM con Pillow
-        with Image.open(ruta_archivo) as img:
-            # Convertir la imagen a un array de NumPy para un procesamiento numérico eficiente
-            mapa_array = np.array(img)
+def detectar_bbox_util(mapa):
+    alto, ancho = mapa.shape
+    bordes = np.concatenate([mapa[0,:], mapa[-1,:], mapa[:,0], mapa[:,-1]])
+    fondo = int(np.median(bordes))
+    mascara = mapa != fondo
+    coords = np.argwhere(mascara)
+    if coords.size == 0:
+        return (0, 0, alto, ancho)
+    min_r, min_c = coords.min(axis=0)
+    max_r, max_c = coords.max(axis=0)
+    return min_r, min_c, max_r, max_c
 
-            # 2. Aplicar el umbral para crear la cuadrícula binaria
-            # Asumimos que los valores por debajo del umbral son obstáculos (1)
-            # y los valores por encima son transitables (0).
-            # Esto es clave: debes ajustar el umbral según cómo tu Lidar genera el mapa.
-            # Por ejemplo, si los obstáculos son < 50, el espacio libre es 255.
-            cuadricula = np.where(mapa_array < umbral_obstaculo, 1, 0).tolist()
-            
-            print(f"Mapa '{ruta_archivo}' cargado exitosamente.")
-            print(f"Dimensiones del mapa: {len(cuadricula)}x{len(cuadricula[0])} píxeles.")
-            
-            return cuadricula
+# ---------------- Visualización / selección (devuelve zoom limits) ----------------
+def mostrar_mapa_y_seleccionar(mapa):
+    bbox = detectar_bbox_util(mapa)
+    min_r, min_c, max_r, max_c = bbox
+    plt.figure(figsize=FIGSIZE)
+    plt.imshow(mapa, cmap='gray', origin='lower')
+    x_min = max(min_c-50, 0)
+    x_max = min(max_c+50, mapa.shape[1])
+    y_min = max(min_r-50, 0)
+    y_max = min(max_r+50, mapa.shape[0])
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.title("Selecciona INICIO y FIN (clic con el mouse) — mapa DILATADO mostrado")
+    plt.xlabel("Eje X (pixeles)")
+    plt.ylabel("Eje Y (pixeles)")
+    puntos = plt.ginput(2, timeout=-1)
+    plt.close()
+    zoom_limits = (x_min, x_max, y_min, y_max)
+    puntos_int = [(int(p[0]), int(p[1])) for p in puntos]
+    return puntos_int, zoom_limits
 
-    except FileNotFoundError:
-        print(f"Error: No se encontró el archivo en la ruta '{ruta_archivo}'")
-        return None
-    except Exception as e:
-        print(f"Ocurrió un error al procesar el archivo de imagen: {e}")
-        return None
+def mostrar_resultado(mapa, camino, zoom_limits_px): 
+    plt.figure(figsize=FIGSIZE)
+    plt.imshow(mapa, cmap='gray', origin='lower')
+    
+    # Aplicar el mismo zoom que la ventana de selección
+    x_min, x_max, y_min, y_max = zoom_limits_px
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    
+    if camino:
+        camino = np.array(camino)
+        plt.plot(camino[:,1], camino[:,0], color='red', linewidth=2, label='Ruta A*')
+        plt.scatter(camino[0,1], camino[0,0], color='lime', s=100, label='Inicio')
+        plt.scatter(camino[-1,1], camino[-1,0], color='cyan', s=100, label='Fin')
+        plt.legend()
+    plt.title("Resultado A* (con dilatación visual aplicada)")
+    plt.xlabel("X (pixeles)"); plt.ylabel("Y (pixeles)")
+    plt.show()
 
-
+# ---------------- YAML loader (solo después de obtener ruta) ----------------
 def cargar_config_mapa_yaml(ruta_yaml):
-    """
-    Carga el archivo de configuración del mapa .yml.
-
-    Returns:
-        Un diccionario con la configuración y la ruta completa a la imagen pgm.
-    """
+    if not os.path.exists(ruta_yaml):
+        print(f"[Aviso] YAML '{ruta_yaml}' no encontrado. No se podrá convertir a metros.")
+        return None
     try:
         with open(ruta_yaml, 'r') as f:
-            config = yaml.safe_load(f)
-            
-            # Construye la ruta completa al archivo PGM, asumiendo que está
-            # en el mismo directorio que el archivo YAML.
-            dir_base = os.path.dirname(ruta_yaml)
-            ruta_imagen = os.path.join(dir_base, config['image'])
-            config['image_path'] = ruta_imagen
-            
-            return config
-    except FileNotFoundError:
-        print(f"Error: No se encontró el archivo YAML en '{ruta_yaml}'")
-        return None
+            cfg = yaml.safe_load(f)
+        # El cálculo del dir_base original no es necesario con rutas absolutas de ROS
+        return cfg
     except Exception as e:
-        print(f"Error al leer el archivo YAML: {e}")
+        print(f"[Aviso] Error leyendo YAML: {e}. No se podrá convertir a metros.")
         return None
+
+# ---------------- Conversión píxel -> mundo (centro del píxel) ----------------
+def pixel_a_mundo(row, col, resolucion, origen_x, origen_y, alto_mapa, flip_y_effective=False):
+    x = origen_x + col * resolucion + resolucion/2.0
+    if not flip_y_effective:
+        y = origen_y + (alto_mapa - 1 - row) * resolucion + resolucion/2.0
+    else:
+        y = origen_y + row * resolucion + resolucion/2.0
+    return (x, y)
+
+# ---------------- Función para guardar a CSV ----------------
+def guardar_ruta_a_csv(ruta_mundos, ruta_csv):
+    """Guarda una lista de tuplas (x, y) en un archivo CSV."""
+    if not ruta_mundos:
+        print("[Aviso] La ruta en metros está vacía, no se guardará CSV.")
+        return
     
-def mundo_a_pixel(x_mundo, y_mundo, resolucion, origen_x, origen_y, alto_mapa):
-    """
-    Convierte coordenadas del mundo real (metros) a coordenadas de píxel.
-    """
-    # Convertir a píxeles desde el origen
-    pixel_x = int((x_mundo - origen_x) / resolucion)
-    pixel_y_desde_origen = int((y_mundo - origen_y) / resolucion)
+    try:
+        with open(ruta_csv, 'w', newline='') as f:
+            writer = csv.writer(f)
+            # Escribir encabezados
+            writer.writerow(['x', 'y'])
+            # Escribir los puntos (x, y)
+            for x, y in ruta_mundos:
+                writer.writerow([x, y])
+        print(f"Ruta guardada exitosamente en: '{ruta_csv}'")
+    except Exception as e:
+        print(f"[Error] No se pudo guardar el archivo CSV: {e}")
 
-    # La coordenada 'y' en las imágenes se cuenta desde arriba hacia abajo,
-    # mientras que en los mapas del mundo se cuenta desde abajo hacia arriba.
-    # Por lo tanto, debemos invertirla.
-    pixel_y = alto_mapa - 1 - pixel_y_desde_origen
+# ---------------- Mostrar resultado en metros (misma vista convertida) ----------------
+def mostrar_resultado_metros(mapa_arr, ruta_mundos, cfg, zoom_limits_px):
+    if cfg is None:
+        print("[Aviso] No hay YAML válido; no se puede mostrar en metros.")
+        return
+    alto, ancho = mapa_arr.shape
+    res = cfg['resolution']
+    origen = cfg['origin']
+    origen_x, origen_y = origen[0], origen[1]
+    extent = [origen_x, origen_x + ancho * res, origen_y, origen_y + alto * res]
+
+    x_min_px, x_max_px, y_min_px, y_max_px = zoom_limits_px
+    x_min_m = origen_x + x_min_px * res
+    x_max_m = origen_x + x_max_px * res
     
-    return (pixel_y, pixel_x) # Devuelve en formato (fila, columna)
+    y_min_m = origen_y + y_min_px * res
+    y_max_m = origen_y + y_max_px * res
 
-def visualizar_con_matplotlib_real(mapa_binario, camino_pixels, config_mapa):
-    """
-    Crea una visualización con Matplotlib usando coordenadas del mundo real en los ejes.
-    """
-    resolucion = config_mapa['resolution']
-    origen = config_mapa['origin']
-    alto, ancho = len(mapa_binario), len(mapa_binario[0])
+    plt.figure(figsize=FIGSIZE)
+    plt.imshow(mapa_arr, cmap='gray', extent=extent, origin='lower')
+    plt.xlim(x_min_m, x_max_m)
+    plt.ylim(y_min_m, y_max_m)
 
-    # Definimos la extensión del mapa en metros para los ejes de la gráfica
-    extent = [
-        origen[0], origen[0] + ancho * resolucion,
-        origen[1], origen[1] + alto * resolucion
-    ]
+    if ruta_mundos:
+        xs = [p[0] for p in ruta_mundos]
+        ys = [p[1] for p in ruta_mundos]
+        plt.plot(xs, ys, color='red', linewidth=2, label='Ruta A* (m)')
+        plt.scatter([xs[0]],[ys[0]], color='lime', s=80, label='Inicio (m)')
+        plt.scatter([xs[-1]],[ys[-1]], color='cyan', s=80, label='Fin (m)')
+        plt.legend()
 
-    plt.imshow(mapa_binario, cmap='gray_r', extent=extent, origin='lower')
-    
-    # Convertimos el camino de píxeles de vuelta a coordenadas del mundo para graficarlo
-    camino_mundo_x = [origen[0] + p[1] * resolucion for p in camino_pixels]
-    camino_mundo_y = [origen[1] + (alto - 1 - p[0]) * resolucion for p in camino_pixels]
-
-    plt.plot(camino_mundo_x, camino_mundo_y, color='red', linewidth=2, label='Ruta A*')
-
-    # Marcamos inicio y fin
-    plt.scatter(camino_mundo_x[0], camino_mundo_y[0], color='lime', s=100, zorder=5, label='Inicio')
-    plt.scatter(camino_mundo_x[-1], camino_mundo_y[-1], color='cyan', s=100, zorder=5, label='Fin')
-    
-    plt.xlabel("Coordenada X (metros)")
-    plt.ylabel("Coordenada Y (metros)")
-    plt.title('Ruta Encontrada en el Mapa')
-    plt.legend()
-    plt.axis('equal') # Asegura que la escala en x e y sea la misma
+    plt.title("Resultado en metros (misma vista)")
+    plt.xlabel("X (m)"); plt.ylabel("Y (m)")
     plt.grid(True)
     plt.show()
 
-if __name__ == '__main__':
-    # 1. Cargar la configuración del mapa desde el archivo YAML
-    ruta_del_yaml = 'mapa_fer.yaml'
-    config = cargar_config_mapa_yaml(ruta_del_yaml)
+# ---------------- Main (flujo idéntico, con flip opcional) ----------------
+def main():
+    # 1) cargar mapa (opcionalmente volteado)
+    # RUTA_PGM ya es absoluta gracias al bloque de código ROS inicial
+    mapa, cuadricula = cargar_mapa_pgm(RUTA_PGM, umbral_libre=UMBRAL_LIBRE, flip_y=FLIP_MAP_Y)
 
-    if config:
-        # 2. Cargar el mapa PGM usando la ruta del archivo de configuración
-        mapa = cargar_y_procesar_mapa_pgm(config['image_path'])
+    # 2) dilatar solo paredes
+    cuadricula_dilatada = dilatar_paredes(cuadricula, RADIO_DILATACION)
 
-        if mapa:
-            alto_mapa_pixels = len(mapa)
-            
-            # 3. Definir inicio y fin en COORDENADAS DEL MUNDO (metros)
-            inicio_mundo = (0, 0)  # (x, y) en metros
-            fin_mundo = (4.82, -2.8)     # (x, y) en metros
+    # 3) crear vista (paredes dilatadas en negro) y selección
+    mapa_visual = mapa.copy()
+    mapa_visual[cuadricula_dilatada == 1] = 0
 
-            # 4. Convertir coordenadas del mundo a píxeles
-            inicio_pixel = mundo_a_pixel(
-                inicio_mundo[0], inicio_mundo[1],
-                config['resolution'], config['origin'][0], config['origin'][1],
-                alto_mapa_pixels
-            )
-            fin_pixel = mundo_a_pixel(
-                fin_mundo[0], fin_mundo[1],
-                config['resolution'], config['origin'][0], config['origin'][1],
-                alto_mapa_pixels
-            )
-            
-            print(f"Buscando ruta desde {inicio_mundo}m [pixel {inicio_pixel}] hasta {fin_mundo}m [pixel {fin_pixel}]")
+    puntos, zoom_limits_px = mostrar_mapa_y_seleccionar(mapa_visual)
+    if len(puntos) < 2:
+        print("No se seleccionaron suficientes puntos.")
+        return
 
-            # 5. Ejecutar A* con las coordenadas de píxeles
-            buscador = BusquedaAEstrella(mapa, tipo_distancia="euclidiana") # euclidiana | manhattan
-            camino_en_pixeles = buscador.buscar(inicio_pixel, fin_pixel)
+    # Los puntos del mouse vienen en formato (columna, fila) - Matplotlib
+    # Se convierten a formato (fila, columna) - NumPy para el algoritmo A*
+    inicio = (int(puntos[0][1]), int(puntos[0][0]))
+    fin    = (int(puntos[1][1]), int(puntos[1][0]))
+    print(f"Punto inicio (fila, col): {inicio}")
+    print(f"Punto fin (fila, col): {fin}")
 
-            # 6. Graficar el resultado
-            if camino_en_pixeles:
-                print(f"Camino encontrado con {len(camino_en_pixeles)} pasos.")
-                visualizar_con_matplotlib_real(mapa, camino_en_pixeles, config)
-            else:
-                print("No se encontró un camino.")
+    # 4) ejecutar A*
+    buscador = BusquedaAEstrella(cuadricula_dilatada) 
+    camino = buscador.buscar(inicio, fin) 
+
+    # Manejo de errores de A*
+    if isinstance(camino, str):
+        if camino == "ERROR_INICIO_INVALIDO":
+            print("ERROR: Punto de inicio inválido (cae sobre un obstáculo/dilatación).")
+        elif camino == "ERROR_FIN_INVALIDO":
+            print("ERROR: Punto de fin inválido (cae sobre un obstáculo/dilatación).")
+        elif camino == "ERROR_RUTA_NO_ALCANZABLE":
+            print("ERROR: Ruta no alcanzable (el destino está aislado del inicio).")
+        else:
+            print(f"ERROR: No se encontró un camino. Código de error: {camino}")
+        return
+
+    # Si camino es una lista (éxito)
+    print(f"Camino encontrado con {len(camino)} pasos (píxeles).")
+    mostrar_resultado(mapa_visual, camino, zoom_limits_px) 
+
+    # 5) cargar YAML solo ahora y convertir la ruta a metros
+    # RUTA_YAML ya es absoluta gracias al bloque de código ROS inicial
+    cfg = cargar_config_mapa_yaml(RUTA_YAML)
+    if cfg is None:
+        print("No se realizó conversión a metros (falta YAML o es inválido).")
+        return
+    if 'resolution' not in cfg or 'origin' not in cfg:
+        print("YAML no tiene 'resolution' u 'origin' -> no se puede convertir a metros.")
+        return
+
+    # decidir si invertimos Y al convertir según override o flip del mapa
+    if FLIP_Y_OVERRIDE is None:
+        flip_y_effective = FLIP_MAP_Y
+    else:
+        flip_y_effective = bool(FLIP_Y_OVERRIDE)
+
+    alto_mapa_pixels = mapa.shape[0]
+    resolucion = cfg['resolution']
+    origen_x = cfg['origin'][0]
+    origen_y = cfg['origin'][1]
+
+    # Conversión a ruta en metros
+    ruta_mundos = [
+        pixel_a_mundo(r, c, resolucion, origen_x, origen_y, alto_mapa_pixels, flip_y_effective)
+        for (r,c) in camino
+    ]
+    
+    # 5.1) Guardar la ruta en metros en CSV
+    # RUTA_CSV_SALIDA ya es absoluta y su directorio existe
+    guardar_ruta_a_csv(ruta_mundos, RUTA_CSV_SALIDA)
+    
+    # 6) mostrar la ruta en metros con la misma vista convertida
+    mostrar_resultado_metros(mapa, ruta_mundos, cfg, zoom_limits_px)
+
+if __name__ == "__main__":
+    main()
