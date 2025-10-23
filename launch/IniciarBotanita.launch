@@ -1,6 +1,16 @@
 <launch>
-  <node pkg="botanita" name="Control_Motores" type="LQR_Kalman.py" output="screen">
-    <param name="Do_CSV" value="True"/>
-  </node>
-  <node pkg="botanita" name="Odometria_Botanita" type="Odometria.py"/>
+   <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+      <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
+      <param name="serial_baudrate"     type="int"    value="115200"/>
+      <param name="frame_id"            type="string" value="laser"/>
+      <param name="inverted"            type="bool"   value="false"/>
+      <param name="angle_compensate"    type="bool"   value="true"/>
+   </node>
+
+   <node pkg="botanita" name="Control_Motores" type="LQR_Kalman.py" output="screen">
+      <param name="Do_CSV" value="False"/>
+      <param name="CSV_Name" value="datos"/>
+   </node>
+   <node pkg="botanita" name="Odometria_Botanita" type="Odometria.py"/>
+   
 </launch>

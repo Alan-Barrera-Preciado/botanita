@@ -3,10 +3,11 @@
 import rospy
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import String
 
 rospy.init_node('referencias_motores')
-pub = rospy.Publisher('/vel_referencia',
- Float32MultiArray, queue_size=10)
+pub = rospy.Publisher('/vel_referencia', Float32MultiArray, queue_size=10)
+map = rospy.Publisher('/syscommand', String, queue_size=10)
 rate = rospy.Rate(20)  # 50 ms
 Ref_Izq = 0
 Ref_Der = 0
@@ -27,6 +28,10 @@ def joy_callback(data):
     if data.buttons[3] > 0.8:
         Vel_Angular = 0
         Vel_Lineal = 0
+    if data.buttons[2] > 0.8:
+        map.publish("savegeotiff")
+        subprocess.Popen(["rosrun", "map_server", "map_server", "-f", "Mapa_Prueba"])
+
 
     Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42)/(16), 12), -12)
     Ref_Der = max(min((2*Vel_Lineal + Vel_Angular * 42)/(16), 12), -12)

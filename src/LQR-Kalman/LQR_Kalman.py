@@ -410,10 +410,11 @@ def main(dt):
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
 
     # usa enumerado (datos.csv, datos_1.csv, datos_2.csv...)
-    print(Do_CSV)
 
     if Do_CSV:
+        CSV_Name = rospy.get_param("~CSV_Name", "datos")
         ruta = mergeData("datos", mode='count', outdir=dataset_dir)
+
 # para comunicacion #
 def send_frame(serialPort, cmd: int):
     START1 = 0xAA
