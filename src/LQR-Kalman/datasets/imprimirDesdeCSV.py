@@ -170,7 +170,7 @@ def plot_motors_from_csv(csv_path,
 # --- Ejemplo de uso ---
 if __name__ == "__main__":
     # ruta a tu csv combinado
-    csv_path = "datos_5.csv"   # <- cambia a tu archivo
+    csv_path = "datos_10.csv"   # <- cambia a tu archivo
     plot_motors_from_csv(csv_path,
                          outdir='.',        # carpeta donde guardar las imágenes
                          save=True,
