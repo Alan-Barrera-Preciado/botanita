@@ -278,7 +278,7 @@ motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
 motor_Izq.kalman.setGananciasQR([1e-7, 5e-16], [3e-5, 5e-9]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Izq.lqr.setPenalizacionesQR([5e-4, 155], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Izq.lqr.setPenalizacionesQR([5e-4, 215], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ########################## MOTOR 2 (Derecho) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
