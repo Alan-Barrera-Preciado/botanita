@@ -2,7 +2,6 @@
 
 import rospy
 import subprocess
-import time
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import String
@@ -32,8 +31,7 @@ def joy_callback(data):
         Vel_Lineal = 0
     if data.buttons[2] > 0.8:
         map.publish("savegeotiff")
-        filename = f"Mapa_{int(time.time())}"
-        subprocess.Popen(["rosrun", "map_server", "map_saver", "-f", filename])
+        subprocess.Popen(["rosrun", "map_server", "map_saver", "-f", "Mapa_Prueba"])
 
 
     Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42)/(16), 12), -12)

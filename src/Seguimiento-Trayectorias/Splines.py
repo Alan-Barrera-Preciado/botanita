@@ -1,14 +1,27 @@
 #!/usr/bin/env python3
 
 import rospy
+import matplotlib.pyplot as plt
 from std_msgs.msg import Float32MultiArray
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseStamped
+from tf.transformations import euler_from_quaternion
 import pandas as pd
 import numpy as np
 from math import cos, sin
+import math
 
 rospy.init_node('splines')
 pub = rospy.Publisher('/vel_referencia', Float32MultiArray, queue_size=10)
+
+def callback(pose_msg):
+    x = pose_msg.pose.position.x
+    y = pose_msg.pose.position.y
+    
+    q = pose_msg.pose.orientation
+    (_, _, yaw) = euler_from_quaternion([q.x, q.y, q.z, q.w])
+    
+    rospy.loginfo(f"Posicion: x={x:.2f}, y={y:.2f}, yaw={math.degrees(yaw):.2f}")
 
 def Obtener_Splines(T, Puntos):
     n = len(T)
@@ -45,35 +58,58 @@ def Evaluar_Splines(S, T, time):
 
     return qk, qpk
 
-Ruta = pd.read_csv('ruta_metros.csv')
+Ruta = pd.read_csv('ruta_simple.csv')
 
 CantidadPuntos = len(Ruta.x)
 tf = 0.05
-S = tf * CantidadPuntos
+S = 20
 T = np.linspace(0, S, CantidadPuntos)
 SpX = Obtener_Splines(T, Ruta.x)
 SpY = Obtener_Splines(T, Ruta.y)
 
 D = 0.10
-kx, ky = 0.05, 0.05
+kpx, kpy = 2.5, 2.5
+kdx, kdy = 1.5, 1.5
+kix, kiy = 0.25, 0.25
 dt = 0.0
+
+Kp = np.array([[kpx, 0], [0, kpy]])
+Kd = np.array([[kdx, 0], [0, kdy]])
+Ki = np.array([[kix, 0], [0, kiy]])    
+
+error = np.array([0.0, 0.0])
+error_integral = np.array([0.0, 0.0])
+error_anterior = np.array([0.0, 0.0])
+error_derivativo = np.array([0.0, 0.0])
+
 rate = rospy.Rate(20)
 
-odom_data = Odometry()
+pose_x = 0.0
+pose_y = 0.0
+pose_yaw = 0.0
+
+tiempos = []
+x_actual = []
+y_actual = []
+x_deseada = []
+y_deseada = []
 
 def odom_callback(msg):
-    global odom_data
-    odom_data = msg
+    global pose_x, pose_y, pose_yaw
+    pose_x = msg.pose.position.x
+    pose_y = msg.pose.position.y
+    q = msg.pose.orientation
+    (_, _, pose_yaw) = euler_from_quaternion([q.x, q.y, q.z, q.w])
 
-rospy.Subscriber('/odom', Odometry, odom_callback)
+rospy.Subscriber('/slam_out_pose', PoseStamped, odom_callback)
 
 while not rospy.is_shutdown():
     xdh, xdh_p = Evaluar_Splines(SpX, T, dt)
     ydh, ydh_p = Evaluar_Splines(SpY, T, dt)
 
-    Theta = odom_data.twist.twist.angular.z
-    xh = odom_data.pose.pose.position.x + D * cos(Theta)
-    yh = odom_data.pose.pose.position.y + D * sin(Theta)
+    Theta = pose_yaw
+    xh = pose_x + D * cos(pose_yaw)
+    yh = pose_y + D * sin(pose_yaw)
 
     A = np.array([
         [cos(Theta), sin(Theta)],
@@ -81,20 +117,64 @@ while not rospy.is_shutdown():
     ])
 
     error = np.array([xdh - xh, ydh - yh])
-    K = np.array([[kx, 0], [0, ky]])
+    error_integral += error * 0.05
+    error_derivativo = (error - error_anterior) / 0.05
+    error_anterior = error
+   
+    Error_U = Kp @ error + Ki @ error_integral + Kd @ error_derivativo
+    u = A @ (np.array([xdh_p, ydh_p]) + Error_U)
     
-    u = A @ (np.array([xdh_p, ydh_p]) * 0 + K @ error)
-
+    print(Error_U)
+    
     Vel_Lineal = u[0]
     Vel_Angular = u[1]
 
-    Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42) / 16, 12), -12)
-    Ref_Der =  max(min((2*Vel_Lineal + Vel_Angular * 42) / 16, 12), -12)
+    Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42) / 16, 4), -4)
+    Ref_Der =  max(min((2*Vel_Lineal + Vel_Angular * 42) / 16, 4), -4)
+
+    if dt > S:
+       Ref_Izq = 0
+       Ref_Der = 0
 
     Ref = Float32MultiArray()
     Ref.data = [Ref_Izq, Ref_Der]
     pub.publish(Ref)
 
+    if dt > S:
+        rospy.signal_shutdown("Trayectoria completada")
+        break
+
+    xdh = float(np.squeeze(xdh))
+    ydh = float(np.squeeze(ydh))
+
+    xh = float(np.squeeze(xh))
+    yh = float(np.squeeze(yh))
+
+
+    tiempos.append(float(dt))
+    x_actual.append(float(xh))
+    y_actual.append(float(yh))
+    x_deseada.append(float(xdh))
+    y_deseada.append(float(ydh))
+
     dt += 0.05
     rate.sleep()
 
+df = pd.DataFrame({
+    'tiempo': tiempos,
+    'x_actual': x_actual,
+    'y_actual': y_actual,
+    'x_deseada': x_deseada,
+    'y_deseada': y_deseada
+})
+
+
+
+plt.plot(df['x_deseada'], df['y_deseada'], 'r--', label='Deseada')
+plt.plot(df['x_actual'], df['y_actual'], 'b-', label='Actual')
+plt.xlabel('X [m]')
+plt.ylabel('Y [m]')
+plt.legend()
+plt.title('Seguimiento de trayectoria')
+plt.grid(True)
+plt.show()

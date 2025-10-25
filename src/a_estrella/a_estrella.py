@@ -24,8 +24,8 @@ try:
     pkg_path = rospack.get_path(ROS_PACKAGE_NAME)
     
     # Rutas absolutas para los mapas (Input)
-    RUTA_PGM = os.path.join(pkg_path, "src", "Mapas", "Fragmento_Mapa.pgm")
-    RUTA_YAML = os.path.join(pkg_path, "src", "Mapas", "Fragmento_Mapa.yaml")
+    RUTA_PGM = os.path.join(pkg_path, "src", "Mapas", "Mapa_Abierto.pgm")
+    RUTA_YAML = os.path.join(pkg_path, "src", "Mapas", "Mapa_Abierto.yaml")
     
     # Rutas absolutas para la trayectoria (Output)
     CSV_DIR = os.path.join(pkg_path, "src", "Mapas", "Trayectorias")
@@ -41,8 +41,8 @@ try:
 except Exception as e:
     # Fallback si rospkg falla o el paquete no se encuentra (e.g., ejecutando fuera de un entorno ROS)
     print(f"AVISO: Fallo al configurar rutas ROS ({e}). Usando rutas relativas por defecto.")
-    RUTA_PGM = "Fragmento_Casa.pgm"
-    RUTA_YAML = "Fragmento_Casa.yaml"
+    RUTA_PGM = "Mapa_Abierto.pgm"
+    RUTA_YAML = "Mapa_Abierto.yaml"
     RUTA_CSV_SALIDA = "ruta_metros_prueba.csv"
 
 # ---------------- Parámetros editables ----------------
