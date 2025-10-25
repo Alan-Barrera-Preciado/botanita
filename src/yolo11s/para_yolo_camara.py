@@ -5,6 +5,15 @@ import onnxruntime as ort
 import os
 import sys
 
+import rospy
+from std_msgs.msg import Float32MultiArray, MultiArrayDimension
+
+rospy.init_node('detecciones_camara')
+
+yolo_detections_pub = rospy.Publisher('/detecciones_yolo', Float32MultiArray, queue_size=10)
+
+emotion_detections_pub = rospy.Publisher('/detecciones_emociones', Float32MultiArray, queue_size=10)
+
 YOLO_MODEL_PATH = 'best.onnx'
 YOLO_INPUT_SIZE = (320,320) # width, heigth
 
@@ -37,6 +46,7 @@ def imgInputPreProcees(rawImage, inputSize):
 # discard detections where all confidence scores are below than a chosen threshold (0.5)
 def filter_Detections(results, thresh = 0.6):
     # if model is trained on 1 class only
+    #detections = []
     if len(results[0]) == 5:
         # filter out the detections with confidence > thresh
         considerable_detections = [detection for detection in results if detection[4] > thresh]
@@ -50,6 +60,7 @@ def filter_Detections(results, thresh = 0.6):
 
             class_id = detection[4:].argmax()
             confidence_score = detection[4:].max()
+            
 
             new_detection = np.append(detection[:4],[class_id,confidence_score])
 
@@ -61,7 +72,7 @@ def filter_Detections(results, thresh = 0.6):
         considerable_detections = [detection for detection in A if detection[-1] > thresh]
         considerable_detections = np.array(considerable_detections)
 
-        return considerable_detections
+        return considerable_detections #, detections
   
 # Non-Maximum Suppression algorithm (NMS) 
 def NMS(boxes, conf_scores, iou_thresh = 0.55):
@@ -212,12 +223,17 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAM_SHAPE[0])
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAM_SHAPE[1])
 print(f"Cámara iniciada con resolución: {int(cap.get(3))}x{int(cap.get(4))}")
 
-while True:
+rate = rospy.Rate(1)
+
+while not rospy.is_shutdown():
     ret, frame = cap.read()
     if not ret:
         print("No se pudo recibir el fotograma. Saliendo...")
-        break
-    
+        break    
+
+    yolo_numeric_data = []
+    emotions_numeric_data = []
+
     yoloInput = imgInputPreProcees(frame, YOLO_INPUT_SIZE)
     yoloOutput = ONNX_MODEL.run(None, {"images": yoloInput})
     
@@ -234,6 +250,9 @@ while True:
             
             # Etiqueta por defecto (solo clase)
             final_label = f"{YOLO_CLASSES[cls_id]} {conf:.2f}"
+            
+            # Formato: [cls_id, conf, x1, y1, x2, y2] (6 campos)
+            yolo_numeric_data.extend([float(cls_id), conf, float(x1), float(y1), float(x2), float(y2)])
 
             # --- INICIO DE LA MODIFICACIÓN ---
             # Si la detección es una 'cara', ejecuta el segundo modelo
@@ -252,19 +271,52 @@ while True:
                     
                     # Obtiene el ID de la emoción predicha (la de mayor probabilidad)
                     emotion_id = np.argmax(emotion_output[0])
+
+                    emotions_numeric_data.extend([float(emotion_id), float(x1), float(y1), float(x2), float(y2)])
+
                     emotion_label = EMOTION_CLASSES[emotion_id]
+                    emotions_labels.append(emotion_label)
                     
                     # Actualiza la etiqueta para incluir la emoción
                     final_label = f"face - {emotion_label}"
             # --- FIN DE LA MODIFICACIÓN ---
 
             # Dibuja la caja y la etiqueta final
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(frame, final_label, (x1, y1 - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            #cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            #cv2.putText(frame, final_label, (x1, y1 - 10),
+            #            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-    cv2.imshow('Deteccion de Emociones en Tiempo Real', frame)
+    # print(final_label)
+    # print(emotions_labels)
     
+    # 1. Mensaje YOLO
+    yolo_msg = Float32MultiArray()
+    yolo_msg.layout.dim.append(MultiArrayDimension())
+    yolo_msg.layout.dim[0].label = "detections"
+    yolo_msg.layout.dim[0].size = len(yolo_numeric_data) // 6  # Número de detecciones
+    yolo_msg.layout.dim[0].stride = 6                          # Campos por detección
+    yolo_msg.data = yolo_numeric_data
+    yolo_detections_pub.publish(yolo_msg)
+
+    # 2. Mensaje de Emociones
+    emotion_msg = Float32MultiArray()
+    emotion_msg.layout.dim.append(MultiArrayDimension())
+    emotion_msg.layout.dim[0].label = "emotions"
+    emotion_msg.layout.dim[0].size = len(emotions_numeric_data) // 5 # Número de emociones
+    emotion_msg.layout.dim[0].stride = 5                           # Campos por emoción
+    emotion_msg.data = emotions_numeric_data
+    emotion_detections_pub.publish(emotion_msg)
+
+    rate.sleep()
+
+    yolo_labels = []
+    emotions_labels = []
+
+
+
+    #cv2.imshow('Deteccion de Emociones en Tiempo Real', frame)
+
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
