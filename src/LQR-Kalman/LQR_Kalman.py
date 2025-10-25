@@ -295,7 +295,7 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 2 controlado con LQR y kalman
 motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Der.kalman.setGananciasQR([1e-8, 1e-17], [3e-3, 4.3e-6]) # Ganancias Q R
+motor_Der.kalman.setGananciasQR([1e-8, 1e-17], [3e-5, 4.3e-6]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
 motor_Der.lqr.setPenalizacionesQR([0.5e-2, 65], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
