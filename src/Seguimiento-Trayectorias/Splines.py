@@ -62,15 +62,15 @@ Ruta = pd.read_csv('ruta_simple.csv')
 
 CantidadPuntos = len(Ruta.x)
 tf = 0.05
-S = 20
+S = 10
 T = np.linspace(0, S, CantidadPuntos)
 SpX = Obtener_Splines(T, Ruta.x)
 SpY = Obtener_Splines(T, Ruta.y)
 
 D = 0.10
-kpx, kpy = 2.5, 2.5
-kdx, kdy = 1.5, 1.5
-kix, kiy = 0.25, 0.25
+kpx, kpy = 0.7, 0.7
+kdx, kdy = 0.5, 0.5
+kix, kiy = 0.0, 0.0
 dt = 0.0
 
 Kp = np.array([[kpx, 0], [0, kpy]])
