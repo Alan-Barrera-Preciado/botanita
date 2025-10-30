@@ -1,5 +1,4 @@
 anger
-content
 disgust
 fear
 happy

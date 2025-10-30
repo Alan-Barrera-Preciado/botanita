@@ -39,7 +39,7 @@ except ort.OnnxRuntimeError as e:
     sys.exit(1)
 
 # EMOCIONES
-CUSTOM_MODEL_PATH = 'emociones_gray_s_v3.onnx'
+CUSTOM_MODEL_PATH = 'emociones_gray_s_v5.onnx'
 
 # Cargar el modelo de emociones
 try:
@@ -63,7 +63,8 @@ except FileNotFoundError:
 
 # Definir el tamaño de entrada para el modelo de emociones
 # Asumo 96x96 porque el pre-proceso original usaba (96,96)
-EMOTION_INPUT_SIZE = (96, 96) 
+# EMOTION_INPUT_SIZE = (96, 96) 
+EMOTION_INPUT_SIZE = (75, 75) 
 # Si tu modelo de grises es 48x48, cambia la línea anterior y la siguiente:
 # EMOTION_INPUT_SIZE = (48, 48)
 
