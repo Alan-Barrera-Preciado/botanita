@@ -276,7 +276,7 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 1 controlado con LQR y kalman
 motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Izq.kalman.setGananciasQR([1e-6, 5e-9], [8e-10, 5e-12]) # Ganancias Q R
+motor_Izq.kalman.setGananciasQR([1e-6, 5e-18], [8e-6, 5e-12]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
 motor_Izq.lqr.setPenalizacionesQR([5e-4, 215], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
@@ -295,9 +295,9 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 2 controlado con LQR y kalman
 motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Der.kalman.setGananciasQR([1e-7, 5e-17], [3e-5, 5e-7]) # Ganancias Q R
-# configuraciones LQR penalizacion ([I, V], | R) 
-motor_Der.lqr.setPenalizacionesQR([5e-2, 215], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Der.kalman.setGananciasQR([1e-7, 5e-17], [3e-5, 5e-10]) # Ganancias Q R
+# configuraciones LQR penalizacion ([I, V], | R)
+motor_Der.lqr.setPenalizacionesQR([10, 255], 80) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ############# Robot Diferencial #############
 
