@@ -4,8 +4,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-
+import rospy
 
 def _unique_filename(path):
     if not os.path.exists(path):
@@ -170,8 +169,9 @@ def plot_motors_from_csv(csv_path,
 # --- Ejemplo de uso ---
 if __name__ == "__main__":
     # ruta a tu csv combinado
-    csv_path = "datos_17.csv"   # <- cambia a tu archivo
-    plot_motors_from_csv(csv_path,
+    rospy.init_node("Graficas", anonymous=True)
+    CSV_Name = rospy.get_param("~CSV_Name", "datos")
+    plot_motors_from_csv(CSV_Name,
                          outdir='.',        # carpeta donde guardar las imágenes
                          save=True,
                          save_mode='count',  # 'timestamp' o 'count'
