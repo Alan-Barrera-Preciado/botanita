@@ -413,7 +413,7 @@ def main(dt):
 
     if Do_CSV:
         CSV_Name = rospy.get_param("~CSV_Name", "datos")
-        ruta = mergeData("datos", mode='count', outdir=dataset_dir)
+        ruta = mergeData(CSV_Name, mode='count', outdir=dataset_dir)
 
 # para comunicacion #
 def send_frame(serialPort, cmd: int):
