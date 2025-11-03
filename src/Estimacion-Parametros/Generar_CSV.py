@@ -100,6 +100,7 @@ dt = 0.05
 seg = 2
 muestreoMaximo = 400
 cambioPWM = int(seg / dt) # seg (2)/dt (0.05) = 40 iteraciones
+i = 1
 
 pwm = pwmTest[0]
 while True:
@@ -120,11 +121,12 @@ while True:
                 time.sleep(1)
                 break
             
-            if t % cambioPWM > 39.95 and j < len(pwmTest):
-                pwm = pwmTest[j]
+            if t % cambioPWM > 39.95 and j < len(pwmTest)-1:
                 j += 1
+                pwm = pwmTest[j]
             
-            print(t % cambioPWM)
+            print(pwm)
+            print(j)
             corrienteD = float(partes[0])
             rpmD = float(partes[1])
             corrienteI = float(partes[2])
@@ -134,7 +136,7 @@ while True:
             lista_rpmD.append(rpmD*0.10472)
             lista_corrienteI.append(corrienteI/1000)
             lista_rpmI.append(rpmI*0.10472)
-            lista_indices.append(t*dt)
+            lista_indices.append(i)
             lista_tiempo.append(t)
 
             # Enviar control (PWM R, PWM L)                
@@ -143,6 +145,7 @@ while True:
             #print(f"[{t}] CorrienteI: {corrienteI:.2f} mA | RPMI: {rpmI:.2f}")
 
             t += dt
+            i += 1
             
             # time.sleep(dt) # dt
         except ValueError:
