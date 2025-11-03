@@ -115,13 +115,13 @@ while True:
     if len(partes) == 4:
         try:
             
-            if(t >= muestreoMaximo+1):
+            if(t > 20):
                 pwm = 0
                 serialPort.write(f"{pwm},{pwm}\n".encode())
                 time.sleep(1)
                 break
             
-            if t % cambioPWM > 39.95 and j < len(pwmTest)-1:
+            if t % 2 > 1.95 and j < len(pwmTest)-1:
                 j += 1
                 pwm = pwmTest[j]
             
@@ -146,6 +146,7 @@ while True:
 
             t += dt
             i += 1
+            time.sleep(dt)
             
             # time.sleep(dt) # dt
         except ValueError:
