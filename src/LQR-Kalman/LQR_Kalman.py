@@ -258,7 +258,7 @@ class RobotMobilDiff:
 
 
 
-dt = 0.05 # dt para ambos sistemas
+dt = 0.01 # dt para ambos sistemas
 
 ########################## MOTOR 1 (Izquierdo) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
