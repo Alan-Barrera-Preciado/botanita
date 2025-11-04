@@ -30,8 +30,9 @@ def joy_callback(data):
         Vel_Angular = 0
         Vel_Lineal = 0
     if data.buttons[2] > 0.8:
+        Map_Name = rospy.get_param("~Map_Name", "Mapa")
         map.publish("savegeotiff")
-        subprocess.Popen(["rosrun", "map_server", "map_saver", "-f", "Mapa_Prueba"])
+        subprocess.Popen(["rosrun", "map_server", "map_saver", "-f", Map_Name])
 
 
     Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42)/(16), 12), -12)

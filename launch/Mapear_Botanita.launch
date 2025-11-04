@@ -4,13 +4,13 @@
   <arg name="Do_CSV" default="False"/>
   <arg name="CSV_Name" default="datos"/>
 
-  <node pkg="botanita" name="Control_Motores" type="LQR_Kalman.py" output="screen">
+  <node pkg="botanita" name="Control_Motores" type="LQR_Kalman.py" output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'">
     <param name="Do_CSV" value="$(arg Do_CSV)"/>
     <param name="CSV_Name" value="$(arg CSV_Name)"/>
   </node>
 
   <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
-    <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
+    <param name="serial_port"         type="string" value="/dev/rplidar"/>
     <param name="serial_baudrate"     type="int"    value="115200"/>
     <param name="frame_id"            type="string" value="laser"/>
     <param name="inverted"            type="bool"   value="false"/>
