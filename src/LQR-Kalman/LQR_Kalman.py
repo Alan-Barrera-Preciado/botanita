@@ -23,6 +23,12 @@ pkg_path = rospack.get_path("botanita")   # nombre del paquete ROS
 dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
 
 
+Kalman_Izq = [[1e-8, 5e-14], [3e-10, 5e-11]]
+Kalman_Der = [[1e-8, 5e-14], [3e-10, 5e-11]]
+
+LQR_Izq = [5e-2, 250, 80]
+LQR_Der = [5e-2, 250, 80]
+
 def _next_count_filename(path):
     """Si path existe, devuelve path_1, path_2, ..."""
     base, ext = os.path.splitext(path)
@@ -276,9 +282,9 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 1 controlado con LQR y kalman
 motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Izq.kalman.setGananciasQR([1e-8, 5e-14], [3e-10, 5e-11]) # Ganancias Q R
+motor_Izq.kalman.setGananciasQR([Kalman_Izq[0][0], Kalman_Izq[0][1]], [Kalman_Izq[1][0], Kalman_Izq[1][1]]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Izq.lqr.setPenalizacionesQR([5e-2, 250], 80) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Izq.lqr.setPenalizacionesQR([LQR_Izq[0], LQR_Izq[1]], LQR_Izq[2]) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ########################## MOTOR 2 (Derecho) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
@@ -295,9 +301,9 @@ Dc = np.zeros((2, 1)) # Dc debe tener 2 filas (una por salida)
 # Declaracion del sistema de MOTOR 2 controlado con LQR y kalman
 motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
-motor_Der.kalman.setGananciasQR([1e-8, 5e-14], [3e-10, 5e-11]) # Ganancias Q R
+motor_Der.kalman.setGananciasQR([Kalman_Der[0][0], Kalman_Der[0][1]], [Kalman_Der[1][0], Kalman_Der[1][1]]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Der.lqr.setPenalizacionesQR([5e-2, 250], 80) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Der.lqr.setPenalizacionesQR([LQR_Der[0], LQR_Der[1]], LQR_Der[2]) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ############# Robot Diferencial #############
 
