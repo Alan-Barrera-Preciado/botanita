@@ -26,16 +26,16 @@ dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
 # Corriente, Velocidad
 # Q, R
 
-Kalman_Izq = [[1e-4, 5e-8], [1e-2, 1e-2]]
-Kalman_Der = [[1e-2, 5e-7], [3e-3, 5e-4]]
+Kalman_Izq = [[1e-5, 5e-8], [1e-1, 1e-2]]
+Kalman_Der = [[1e-5, 5e-8], [1e-1, 1e-2]]
 
 # Kalman_Izq = [[1e-9, 5e-14], [3e-10, 5e-11]]
 # Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-11]]
 
 # Corriente, Velocidad, Accion de control
 
-LQR_Izq = [35, 280, 10]
-LQR_Der = [5, 250, 10]
+LQR_Izq = [5, 320, 10]
+LQR_Der = [5, 320, 10]
 
 def _next_count_filename(path):
     """Si path existe, devuelve path_1, path_2, ..."""
