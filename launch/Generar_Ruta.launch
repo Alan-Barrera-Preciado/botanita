@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="Map_Name" default="Mapa"/>
+  <arg name="Route_Name" default="Ruta"/>
+  <arg name="Two_Points" default="False"/>
+  <arg name="Distance" default="manhattan"/>
+  <arg name="Neighborhood" default="neumann"/>
+
+  <node pkg="botanita" name="A_Estrella" type="a_estrella.py" output="screen">
+    <param name="Map_Name" value="$(arg Map_Name)"/>
+    <param name="Two_Points" value="$(arg Two_Points)"/>
+    <param name="Route_Name" value="$(arg Route_Name)"/>
+    <param name="Distance" value="$(arg Distance)"/>
+    <param name="Neighborhood" value="$(arg Neighborhood)"/>
+  </node>
+
+</launch>

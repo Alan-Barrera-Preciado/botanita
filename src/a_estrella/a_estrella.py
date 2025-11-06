@@ -13,6 +13,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import binary_dilation
 import sys 
+import rospy
+
+
+rospy.init_node('a_estrella', anonymous=True)
 
 # --- Importe y Configuración de Rutas ROS ---
 try:
@@ -22,14 +26,22 @@ try:
     ROS_PACKAGE_NAME = "botanita" 
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path(ROS_PACKAGE_NAME)
-    
+    Map_dir = os.path.join(pkg_path, "src", "Mapas")    
+    Map_Name = rospy.get_param("~Map_Name", "Mapa")
     # Rutas absolutas para los mapas (Input)
-    RUTA_PGM = os.path.join(pkg_path, "src", "Mapas", "Mapa_Abierto.pgm")
-    RUTA_YAML = os.path.join(pkg_path, "src", "Mapas", "Mapa_Abierto.yaml")
+    if not Map_Name.lower().endswith('.pgm'):
+        Map_pgm = f"{Map_Name}.pgm"
+    RUTA_PGM = os.path.join(Map_dir, Map_pgm)
+    if not Map_Name.lower().endswith('.yaml'):
+        Map_yaml = f"{Map_Name}.yaml"
+    RUTA_YAML = os.path.join(Map_dir, Map_yaml)
     
     # Rutas absolutas para la trayectoria (Output)
-    CSV_DIR = os.path.join(pkg_path, "src", "Mapas", "Trayectorias")
-    RUTA_CSV_SALIDA = os.path.join(CSV_DIR, "ruta_metros.csv")
+    CSV_DIR = os.path.join(pkg_path, "src", "Trayectorias")
+    Route_Name = rospy.get_param("~Route_Name", "Ruta")
+    if not Route_Name.lower().endswith('.csv'):
+        Route = f"{Route_Name}.csv"
+    RUTA_CSV_SALIDA = os.path.join(CSV_DIR, Route)
     
     # Crear el directorio de salida si no existe
     if not os.path.exists(CSV_DIR):
@@ -56,9 +68,9 @@ FLIP_Y_OVERRIDE = None
 
 # --- Parámetros de A* ---
 # Heurística: Usa "manhattan" o "euclidiana"
-HEURISTICA_DISTANCIA = "manhattan" 
+HEURISTICA_DISTANCIA = rospy.get_param("~Distance", "manhattan")
 # Vecindario: Usa "moore" (ortogonal + diagonal) o "neumann" (solo ortogonal)
-TIPO_VECINDARIO = "neumann"      
+TIPO_VECINDARIO = rospy.get_param("~Neighborhood", "neumann")
 # -----------------------------------------------------
 
 # ---------------- Nodo y A* (tu versión) ----------------
@@ -212,6 +224,7 @@ def detectar_bbox_util(mapa):
 
 # ---------------- Visualización / selección (devuelve zoom limits) ----------------
 def mostrar_mapa_y_seleccionar(mapa):
+    Two_Points = rospy.get_param("~Two_Points", False)
     bbox = detectar_bbox_util(mapa)
     min_r, min_c, max_r, max_c = bbox
     plt.figure(figsize=FIGSIZE)
@@ -222,11 +235,20 @@ def mostrar_mapa_y_seleccionar(mapa):
     y_max = min(max_r+50, mapa.shape[0])
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
-    plt.title("Selecciona INICIO y FIN (clic con el mouse) — mapa DILATADO mostrado")
-    plt.xlabel("Eje X (pixeles)")
-    plt.ylabel("Eje Y (pixeles)")
-    puntos = plt.ginput(2, timeout=-1)
-    plt.close()
+    if Two_Points:
+        plt.title("Selecciona INICIO y FIN (clic con el mouse) — mapa DILATADO mostrado")
+        plt.xlabel("Eje X (pixeles)")
+        plt.ylabel("Eje Y (pixeles)")
+        puntos = plt.ginput(2, timeout=-1)
+        plt.close()
+    else:
+        plt.title("Selecciona FIN (clic con el mouse) — mapa DILATADO mostrado")
+        plt.xlabel("Eje X (pixeles)")
+        plt.ylabel("Eje Y (pixeles)")
+        punto_inicio = (1024,1024)
+        punto_final = plt.ginput(1, timeout=-1)[0]
+        puntos = [punto_inicio, punto_final]
+        plt.close()
     zoom_limits = (x_min, x_max, y_min, y_max)
     puntos_int = [(int(p[0]), int(p[1])) for p in puntos]
     return puntos_int, zoom_limits
@@ -342,6 +364,7 @@ def main():
     mapa_visual[cuadricula_dilatada == 1] = 0
 
     puntos, zoom_limits_px = mostrar_mapa_y_seleccionar(mapa_visual)
+    
     if len(puntos) < 2:
         print("No se seleccionaron suficientes puntos.")
         return
