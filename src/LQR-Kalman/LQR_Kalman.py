@@ -383,6 +383,10 @@ def main(dt):
                         [rpmD * 0.1047197551]
                       ])
 
+                print("CorrienteI: ", corrienteI)
+                print("CorrienteD: ", corrienteD)
+                print("---------------------")
+
 
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
