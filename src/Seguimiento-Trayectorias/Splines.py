@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import os
 import matplotlib.pyplot as plt
 from std_msgs.msg import Float32MultiArray
 from nav_msgs.msg import Odometry
@@ -9,6 +10,7 @@ from tf.transformations import euler_from_quaternion
 import pandas as pd
 import numpy as np
 from math import cos, sin
+import rospkg
 import math
 
 rospy.init_node('splines')
@@ -58,19 +60,27 @@ def Evaluar_Splines(S, T, time):
 
     return qk, qpk
 
-Ruta = pd.read_csv('ruta_simple.csv')
+ROS_PACKAGE_NAME = "botanita" 
+rospack = rospkg.RosPack()
+pkg_path = rospack.get_path(ROS_PACKAGE_NAME)
+Ruta_dir = os.path.join(pkg_path, "src", "Trayectorias") 
+Route_Name = rospy.get_param("~Route_Name", "Ruta")
+if not Route_Name.lower().endswith('.csv'):
+        Route_Name = f"{Route_Name}.csv"
+Ruta_csv = os.path.join(Ruta_dir, Route_Name)
+Ruta = pd.read_csv(Ruta_csv)
 
 CantidadPuntos = len(Ruta.x)
 tf = 0.05
-S = 10
+S = 20
 T = np.linspace(0, S, CantidadPuntos)
 SpX = Obtener_Splines(T, Ruta.x)
 SpY = Obtener_Splines(T, Ruta.y)
 
-D = 0.10
-kpx, kpy = 0.7, 0.7
-kdx, kdy = 0.5, 0.5
-kix, kiy = 0.0, 0.0
+D = 0.30
+kpx, kpy = 1.5, 1.5
+kdx, kdy = 1.2, 1.2
+kix, kiy = 0.7, 0.7
 dt = 0.0
 
 Kp = np.array([[kpx, 0], [0, kpy]])
@@ -96,7 +106,7 @@ y_deseada = []
 
 def odom_callback(msg):
     global pose_x, pose_y, pose_yaw
-    pose_x = msg.pose.position.x
+    pose_x = msg.pose.position.x - 0.3
     pose_y = msg.pose.position.y
     q = msg.pose.orientation
     (_, _, pose_yaw) = euler_from_quaternion([q.x, q.y, q.z, q.w])
@@ -124,13 +134,19 @@ while not rospy.is_shutdown():
     Error_U = Kp @ error + Ki @ error_integral + Kd @ error_derivativo
     u = A @ (np.array([xdh_p, ydh_p]) + Error_U)
     
-    print(Error_U)
-    
     Vel_Lineal = u[0]
     Vel_Angular = u[1]
 
-    Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42) / 16, 4), -4)
-    Ref_Der =  max(min((2*Vel_Lineal + Vel_Angular * 42) / 16, 4), -4)
+    print("Posicion actual: ")
+    print("X: ", xh)
+    print("Y: ", yh)
+    print("Posicion deseada: ")
+    print("Xd: ", xdh)
+    print("Yd: ", ydh)
+    print("---------------------")
+
+    Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42) / 16, 6), -6)
+    Ref_Der =  max(min((2*Vel_Lineal + Vel_Angular * 42) / 16, 6), -6)
 
     if dt > S:
        Ref_Izq = 0
