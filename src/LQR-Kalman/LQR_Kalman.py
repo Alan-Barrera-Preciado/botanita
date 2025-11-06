@@ -26,8 +26,8 @@ dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
 # Corriente, Velocidad
 # Q, R
 
-Kalman_Izq = [[1e-4, 5e-9], [3e-5, 5e-6]]
-Kalman_Der = [[1e-4, 5e-9], [3e-5, 5e-6]]
+Kalman_Izq = [[1e-2, 5e-7], [3e-3, 5e-4]]
+Kalman_Der = [[1e-2, 5e-7], [3e-3, 5e-4]]
 
 # Kalman_Izq = [[1e-9, 5e-14], [3e-10, 5e-11]]
 # Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-11]]
@@ -396,11 +396,6 @@ def main(dt):
                         [corrienteD / 1000.0],
                         [rpmD * 0.1047197551]
                       ])
-
-                print("CorrienteI: ", corrienteI)
-                print("CorrienteD: ", corrienteD)
-                print("---------------------")
-
 
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
