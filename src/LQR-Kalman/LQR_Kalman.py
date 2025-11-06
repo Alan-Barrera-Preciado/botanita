@@ -248,8 +248,8 @@ class MotorKalmanLQR:
 		# PWM (SÍMBOLO del signo y magnitud)
         pwm = int(np.clip(u_sat / 12.0, -1.0, 1.0) * 255)
 
-        if abs(pwm) <= 10:
-            pwm=(abs(pwm)+10)*np.sign(pwm)
+        if abs(pwm) < 50:
+            pwm=(abs(pwm)+50)*np.sign(pwm)
 
         return pwm, u_sat # pwm+15 para compensar friccion 
 
