@@ -26,8 +26,8 @@ dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
 # Corriente, Velocidad
 # Q, R
 
-Kalman_Izq = [[1e-9, 5e-14], [3e-8, 5e-11]]
-Kalman_Der = [[1e-9, 5e-14], [3e-9, 5e-11]]
+Kalman_Izq = [[1e-9, 5e-14], [3e-10, 5e-11]]
+Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-11]]
 
 # Corriente, Velocidad, Accion de control
 
@@ -132,7 +132,7 @@ class FiltroKalman:
         
         self.x_est = np.zeros((2, 1))
         self.x_est = self.sys.F @ self.x_est + self.sys.G * 0 
-        self.P = np.eye(2) #np.array([[3,0],[0,0.05]]) #np.eye(2)
+        self.P = np.array([[0.2,0],[0, 2.3]]) #np.eye(2)
         self.P = self.sys.F @ self.P @ self.sys.F.T + self.Q_kalman
     
     def actualizar(self, z):
