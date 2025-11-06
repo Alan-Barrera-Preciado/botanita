@@ -278,7 +278,7 @@ motor_Izq = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
 motor_Izq.kalman.setGananciasQR([1e-8, 5e-14], [3e-10, 5e-11]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Izq.lqr.setPenalizacionesQR([5e-2, 305], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Izq.lqr.setPenalizacionesQR([5e-2, 25], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ########################## MOTOR 2 (Derecho) ##########################
 Rm, Lm, Jm, Bm = 1.26450238e+01, 3.53068540e-01, 3.46318818e-02, 1.14027020e-02 # JALAN
@@ -297,7 +297,7 @@ motor_Der = MotorKalmanLQR(Sistema(Ac, Bc, Cc, Dc, dt))
 # configuraciones Kalman
 motor_Der.kalman.setGananciasQR([1e-8, 5e-14], [3e-10, 5e-11]) # Ganancias Q R
 # configuraciones LQR penalizacion ([I, V], | R) 
-motor_Der.lqr.setPenalizacionesQR([5e-2, 305], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
+motor_Der.lqr.setPenalizacionesQR([5e-2, 25], 10) # Penalizacion Q (referencia) | Penalizacion R (accion control)
 
 ############# Robot Diferencial #############
 
