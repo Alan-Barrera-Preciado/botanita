@@ -84,7 +84,7 @@ error_integral = np.array([0.0, 0.0])
 error_anterior = np.array([0.0, 0.0])
 error_derivativo = np.array([0.0, 0.0])
 
-rate = rospy.Rate(20)
+rate = rospy.Rate(5)
 
 pose_x = 0.0
 pose_y = 0.0

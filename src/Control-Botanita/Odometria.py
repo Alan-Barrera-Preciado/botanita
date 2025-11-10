@@ -29,7 +29,7 @@ def rads_callback(msg):
     omega = r * (w_r - w_l) / L
 
     current_time = rospy.Time.now()
-    dt = 0.0 if prev_time is None else (current_time - prev_time).to_sec()
+    dt = 0.01 # if prev_time is None else (current_time - prev_time).to_sec()
     prev_time = current_time
 
     # Filtro exponencial

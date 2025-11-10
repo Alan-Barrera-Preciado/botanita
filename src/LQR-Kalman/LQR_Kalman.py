@@ -324,7 +324,7 @@ def main(dt):
     
     rospy.Subscriber('/vel_referencia', Float32MultiArray, callback_ref)
     # dt = 0.025
-    rate = rospy.Rate(1/dt) 
+    rate = rospy.Rate(5)   #  1/dt) 
 
     # ############# CONFIGURACIÓN SERIAL #############
     PORT = "/dev/esp32"
