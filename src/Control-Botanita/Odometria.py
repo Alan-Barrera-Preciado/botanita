@@ -12,6 +12,8 @@ theta_pub = rospy.Publisher('/theta_estimada', Float32, queue_size=10)   # orien
 
 r = 0.08    # radio de las ruedas [m]
 L = 0.405   # distancia entre ruedas [m]
+w_l = 0.0
+w_r = 0.0
 
 x, y, theta = 0.0, 0.0, 0.0
 prev_time = None
