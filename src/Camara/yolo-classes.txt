@@ -1,0 +1,8 @@
+face
+fu
+palm
+peace-sign
+phone
+phone-camera
+thumbs-down
+thumbs-up
