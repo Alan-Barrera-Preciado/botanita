@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from std_msgs.msg import Float32MultiArray
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Float32
 from geometry_msgs.msg import PoseStamped
 from tf.transformations import euler_from_quaternion
 import pandas as pd
@@ -15,15 +16,6 @@ import math
 
 rospy.init_node('splines')
 pub = rospy.Publisher('/vel_referencia', Float32MultiArray, queue_size=10)
-
-def callback(pose_msg):
-    x = pose_msg.pose.position.x
-    y = pose_msg.pose.position.y
-    
-    q = pose_msg.pose.orientation
-    (_, _, yaw) = euler_from_quaternion([q.x, q.y, q.z, q.w])
-    
-    rospy.loginfo(f"Posicion: x={x:.2f}, y={y:.2f}, yaw={math.degrees(yaw):.2f}")
 
 def Obtener_Splines(T, Puntos):
     n = len(T)
@@ -72,15 +64,15 @@ Ruta = pd.read_csv(Ruta_csv)
 
 CantidadPuntos = len(Ruta.x)
 tf = 0.05
-S = 20
+S = 10
 T = np.linspace(0, S, CantidadPuntos)
 SpX = Obtener_Splines(T, Ruta.x)
 SpY = Obtener_Splines(T, Ruta.y)
 
-D = 0.30
-kpx, kpy = 1.5, 1.5
-kdx, kdy = 0.5, 0.5
-kix, kiy = 0.05, 0.05
+D = 0.15
+kpx, kpy = 0.05, 0.05
+kdx, kdy = 0.015, 0.015
+kix, kiy = 0.001, 0.001
 dt = 0.0
 
 Kp = np.array([[kpx, 0], [0, kpy]])
@@ -96,7 +88,7 @@ rate = rospy.Rate(20)
 
 pose_x = 0.0
 pose_y = 0.0
-pose_yaw = 0.0
+theta_est = 0.0
 
 tiempos = []
 x_actual = []
@@ -118,22 +110,27 @@ datos = {
     "error_y": []
 }
 
-def odom_callback(msg):
-    global pose_x, pose_y, pose_yaw
-    pose_x = msg.pose.position.x - 0.3
-    pose_y = msg.pose.position.y
-    q = msg.pose.orientation
-    (_, _, pose_yaw) = euler_from_quaternion([q.x, q.y, q.z, q.w])
+def theta_callback(msg):
+    global theta_est
+    theta_est = msg.data
+    
+def odom_callback(pose_msg):
+    global pose_x, pose_y
+    x = pose_msg.pose.pose.position.x
+    y = pose_msg.pose.pose.position.y
+    pose_x = x - D
+    pose_y = y
 
-rospy.Subscriber('/slam_out_pose', PoseStamped, odom_callback)
+rospy.Subscriber('/odom_estimada', Odometry, odom_callback)
+rospy.Subscriber('/theta_estimada', Float32, theta_callback)
 
 while not rospy.is_shutdown():
     xdh, xdh_p = Evaluar_Splines(SpX, T, dt)
     ydh, ydh_p = Evaluar_Splines(SpY, T, dt)
 
-    Theta = pose_yaw
-    xh = pose_x + D * cos(pose_yaw)
-    yh = pose_y + D * sin(pose_yaw)
+    Theta = 0 # theta_est
+    xh = pose_x + D * cos(Theta)
+    yh = pose_y + D * sin(Theta)
 
     A = np.array([
         [cos(Theta), sin(Theta)],
@@ -141,8 +138,8 @@ while not rospy.is_shutdown():
     ])
 
     error = np.array([xdh - xh, ydh - yh])
-    error_integral += error * 0.05
-    error_derivativo = (error - error_anterior) / 0.05
+    error_integral += error * 0.01
+    error_derivativo = (error - error_anterior) / 0.01
     error_anterior = error
    
     Error_U = Kp @ error + Ki @ error_integral + Kd @ error_derivativo
