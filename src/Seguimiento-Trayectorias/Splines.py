@@ -79,8 +79,8 @@ SpY = Obtener_Splines(T, Ruta.y)
 
 D = 0.30
 kpx, kpy = 1.5, 1.5
-kdx, kdy = 1.2, 1.2
-kix, kiy = 0.7, 0.7
+kdx, kdy = 0.5, 0.5
+kix, kiy = 0.05, 0.05
 dt = 0.0
 
 Kp = np.array([[kpx, 0], [0, kpy]])
@@ -103,6 +103,20 @@ x_actual = []
 y_actual = []
 x_deseada = []
 y_deseada = []
+
+datos = {
+    "t": [],
+    "x_actual": [],
+    "y_actual": [],
+    "x_deseada": [],
+    "y_deseada": [],
+    "Ref_Izq": [],
+    "Ref_Der": [],
+    "Vel_Lineal": [],
+    "Vel_Angular": [],
+    "error_x": [],
+    "error_y": []
+}
 
 def odom_callback(msg):
     global pose_x, pose_y, pose_yaw
@@ -137,14 +151,6 @@ while not rospy.is_shutdown():
     Vel_Lineal = u[0]
     Vel_Angular = u[1]
 
-    print("Posicion actual: ")
-    print("X: ", xh)
-    print("Y: ", yh)
-    print("Posicion deseada: ")
-    print("Xd: ", xdh)
-    print("Yd: ", ydh)
-    print("---------------------")
-
     Ref_Izq = -max(min((2*Vel_Lineal - Vel_Angular * 42) / 16, 6), -6)
     Ref_Der =  max(min((2*Vel_Lineal + Vel_Angular * 42) / 16, 6), -6)
 
@@ -160,37 +166,47 @@ while not rospy.is_shutdown():
         rospy.signal_shutdown("Trayectoria completada")
         break
 
-    xdh = float(np.squeeze(xdh))
-    ydh = float(np.squeeze(ydh))
-
-    xh = float(np.squeeze(xh))
-    yh = float(np.squeeze(yh))
-
-
-    tiempos.append(float(dt))
-    x_actual.append(float(xh))
-    y_actual.append(float(yh))
-    x_deseada.append(float(xdh))
-    y_deseada.append(float(ydh))
-
     dt += 0.05
+    
+    datos["t"].append(dt)
+    datos["x_actual"].append(xh)
+    datos["y_actual"].append(yh)
+    datos["x_deseada"].append(xdh)
+    datos["y_deseada"].append(ydh)
+    datos["Ref_Izq"].append(Ref_Izq)
+    datos["Ref_Der"].append(Ref_Der)
+    datos["Vel_Lineal"].append(Vel_Lineal)
+    datos["Vel_Angular"].append(Vel_Angular)
+    datos["error_x"].append(error[0])
+    datos["error_y"].append(error[1])
+    
     rate.sleep()
 
-df = pd.DataFrame({
-    'tiempo': tiempos,
-    'x_actual': x_actual,
-    'y_actual': y_actual,
-    'x_deseada': x_deseada,
-    'y_deseada': y_deseada
-})
+df = pd.DataFrame(datos)
 
+# Crear carpeta de salida dentro del paquete (si no existe)
+resultados_dir = os.path.join(pkg_path, "src", "Resultados")
+os.makedirs(resultados_dir, exist_ok=True)
 
+Result_Name = rospy.get_param("~Result_Name", "Resultados")
+if not Route_Name.lower().endswith('.csv'):
+    Result_Name = f"{Result_Name}.csv"
+csv_path = os.path.join(resultados_dir, Result_Name)
+df.to_csv(csv_path, index=False)
 
-plt.plot(df['x_deseada'], df['y_deseada'], 'r--', label='Deseada')
-plt.plot(df['x_actual'], df['y_actual'], 'b-', label='Actual')
-plt.xlabel('X [m]')
-plt.ylabel('Y [m]')
+rospy.loginfo(f"Datos de trayectoria guardados en: {csv_path}")
+
+xd = np.array(df["x_deseada"])
+yd = np.array(df["y_deseada"])
+xa = np.array(df["x_actual"])
+ya = np.array(df["y_actual"])
+
+plt.figure()
+plt.plot(xd, yd, 'r--', label="Deseada")
+plt.plot(xa, ya, 'b-', label="Real")
 plt.legend()
-plt.title('Seguimiento de trayectoria')
-plt.grid(True)
+plt.xlabel("X (m)")
+plt.ylabel("Y (m)")
+plt.title("Trayectoria generada vs deseada")
+plt.grid()
 plt.show()
