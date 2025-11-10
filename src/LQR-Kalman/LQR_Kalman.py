@@ -16,7 +16,7 @@ import rospy
 from std_msgs.msg import Float32MultiArray
 
 rospy.init_node('controlador_motores')
-pub = rospy.Publisher('/rpm_medido', Float32MultiArray, queue_size=10)
+pub = rospy.Publisher('/rads_motores', Float32MultiArray, queue_size=10)
 
 rospack = rospkg.RosPack()
 pkg_path = rospack.get_path("botanita")   # nombre del paquete ROS
@@ -251,21 +251,21 @@ class MotorKalmanLQR:
         return pwm, u_sat # pwm+15 para compensar friccion 
 
 class RobotMobilDiff:
-    def __init__(self, motorIzquierdo: MotorKalmanLQR, motorDerecho: MotorKalmanLQR, dt, pub_rpm):
+    def __init__(self, motorIzquierdo: MotorKalmanLQR, motorDerecho: MotorKalmanLQR, dt, pub_rads):
         self.dt = dt
         self.motorIzquierdo = motorIzquierdo
         self.motorDerecho = motorDerecho
-        self.pub = pub_rpm
+        self.pub = pub_rads
             
     def referenciaMotoresCustom(self, t, ref_Izq, ref_Der, z_Izq, z_Der):
         pwm_izq, uSat_I = self.motorIzquierdo.pasoLectura(t, ref_Izq, z_Izq)
         pwm_Der, uSat_D = self.motorDerecho.pasoLectura(t, ref_Der, z_Der)        
         return pwm_izq, pwm_Der, uSat_I, uSat_D  
         
-    def publicarRPM(self,RPM_Izq, RPM_Der):
-        RPM = Float32MultiArray()
-        RPM.data = [RPM_Izq, RPM_Der]
-        self.pub.publish(RPM)
+    def publicarRads(self,Rads_Izq, Rads_Der):
+        RadianesSegundo = Float32MultiArray()
+        RadianesSegundo.data = [Rads_Izq, Rads_Der]
+        self.pub.publish(RadianesSegundo)
 
 
 
@@ -401,7 +401,9 @@ def main(dt):
                 if pwm_Der < 0:
                      rpmD = rpmD*-1
 
-                bot.publicarRPM(rpmI, rpmD)
+                Radianes_Estimados_Izq = bot.motorIzquierdo.kalman.x_est[0]
+                Radianes_Estimados_Der = bot.motorDerecho.kalman.x_est[0]
+                bot.publicarRADS(Radianes_Estimados_Izq, Radianes_Estimados_Der)
 
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
@@ -415,6 +417,8 @@ def main(dt):
 
             
     serialPort.close()
+
+    
 
     # usa timestamp (por defecto)
     #ruta = mergeData("datos", mode='timestamp', outdir="/home/pi/datos")
