@@ -7,8 +7,8 @@ import tf
 import math
 
 rospy.init_node('odometria')
-pub = rospy.Publisher('/odom', Odometry, queue_size=10)
-theta_pub = rospy.Publisher('/theta_deg', Float32, queue_size=10)   # orientación en grados
+pub = rospy.Publisher('/odom_estimada', Odometry, queue_size=10)
+theta_pub = rospy.Publisher('/theta_estimada', Float32, queue_size=10)   # orientación en grados
 
 r = 0.08    # radio de las ruedas [m]
 L = 0.405   # distancia entre ruedas [m]
@@ -17,14 +17,11 @@ x, y, theta = 0.0, 0.0, 0.0
 prev_time = None
 v_f, omega_f = 0.0, 0.0   # inicialización de filtros
 
-def rpm_callback(msg):
+def rads_callback(msg):
     global x, y, theta, prev_time, v_f, omega_f
 
-    rpm_l, rpm_r = msg.data
-
-    # rad/s de cada rueda
-    w_l = -rpm_l * 2 * math.pi / 60
-    w_r =  rpm_r * 2 * math.pi / 60
+    w_l, w_r = msg.data
+    w_l = w_l * -1
 
     v = r * (w_r + w_l) / 2
     omega = r * (w_r - w_l) / L
@@ -67,6 +64,6 @@ def rpm_callback(msg):
     theta_deg = math.degrees(theta)
     theta_pub.publish(theta_deg)
 
-rospy.Subscriber('/rpm_medido', Float32MultiArray, rpm_callback)
+rospy.Subscriber('/rads_motores', Float32MultiArray, rads_callback)
 rospy.spin()
 

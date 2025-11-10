@@ -4,6 +4,7 @@ import rospy
 import os
 import matplotlib.pyplot as plt
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped
 from tf.transformations import euler_from_quaternion
@@ -15,16 +16,6 @@ import math
 
 rospy.init_node('splines')
 pub = rospy.Publisher('/vel_referencia', Float32MultiArray, queue_size=10)
-
-def callback(pose_msg):
-    x = pose_msg.pose.position.x
-    y = pose_msg.pose.position.y
-    
-    q = pose_msg.pose.orientation
-    (_, _, yaw) = euler_from_quaternion([q.x, q.y, q.z, q.w])
-    
-    rospy.loginfo(f"Posicion: x={x:.2f}, y={y:.2f}, yaw={math.degrees(yaw):.2f}")
-    
     
 S = 15
 D = 0.30
@@ -46,7 +37,7 @@ rate = rospy.Rate(20)
 
 pose_x = 0.0
 pose_y = 0.0
-pose_yaw = 0.0
+theta_est = 0.0
 
 tiempos = []
 x_actual = []
@@ -68,23 +59,29 @@ datos = {
     "error_y": []
 }
 
-def odom_callback(msg):
-    global pose_x, pose_y, pose_yaw
-    pose_x = msg.pose.position.x - 0.3
-    pose_y = msg.pose.position.y
-    q = msg.pose.orientation
-    (_, _, pose_yaw) = euler_from_quaternion([q.x, q.y, q.z, q.w])
 
-rospy.Subscriber('/slam_out_pose', PoseStamped, odom_callback)
+def theta_callback(msg):
+    global theta_est
+    theta_est = msg.data
+    
+def odom_callback(pose_msg):
+    global pose_x, pose_y
+    x = pose_msg.pose.pose.position.x
+    y = pose_msg.pose.pose.position.y
+    pose_x = x
+    pose_y = y
+
+rospy.Subscriber('/odom_estimada', Odometry, odom_callback)
+rospy.Subscriber('/theta_estimada', Float32, theta_callback)
 
 while not rospy.is_shutdown():
 
     xdh = 2.0
     ydh = 0.0
 
-    Theta = pose_yaw
-    xh = pose_x + D * cos(pose_yaw)
-    yh = pose_y + D * sin(pose_yaw)
+    Theta = theta_est
+    xh = pose_x + D * cos(Theta)
+    yh = pose_y + D * sin(Theta)
 
     A = np.array([
         [cos(Theta), sin(Theta)],
