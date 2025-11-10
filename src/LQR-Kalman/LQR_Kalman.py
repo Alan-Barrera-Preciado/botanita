@@ -401,10 +401,6 @@ def main(dt):
                 if pwm_Der < 0:
                      rpmD = rpmD*-1
 
-                Radianes_Estimados_Izq = bot.motorIzquierdo.kalman.x_est[1]
-                Radianes_Estimados_Der = bot.motorDerecho.kalman.x_est[1]
-                bot.publicarRads(Radianes_Estimados_Izq, Radianes_Estimados_Der)
-
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
                 # serialPort.flush()
@@ -412,6 +408,12 @@ def main(dt):
                 #print(f"[{t}] CorrienteI: {corrienteI:.2f} mA | RPMI: {rpmI:.2f}")
 
                 t += dt
+                
+            
+            Radianes_Estimados_Izq = bot.motorIzquierdo.kalman.x_est[1]
+            Radianes_Estimados_Der = bot.motorDerecho.kalman.x_est[1]
+            bot.publicarRads(Radianes_Estimados_Izq, Radianes_Estimados_Der)
+                
             except rospy.ROSInterruptException:
                 break
 
