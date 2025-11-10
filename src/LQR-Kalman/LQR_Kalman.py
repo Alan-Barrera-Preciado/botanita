@@ -403,7 +403,7 @@ def main(dt):
 
                 Radianes_Estimados_Izq = bot.motorIzquierdo.kalman.x_est[0]
                 Radianes_Estimados_Der = bot.motorDerecho.kalman.x_est[0]
-                bot.publicarRADS(Radianes_Estimados_Izq, Radianes_Estimados_Der)
+                bot.publicarRads(Radianes_Estimados_Izq, Radianes_Estimados_Der)
 
                 # Enviar control (PWM R, PWM L)                
                 serialPort.write(f"{pwm_Izq},{pwm_Der}\n".encode())
