@@ -411,7 +411,7 @@ def main(dt):
                 
             except rospy.ROSInterruptException:
                 break
-
+        
         Radianes_Estimados_Izq = bot.motorIzquierdo.kalman.x_est[1]
         Radianes_Estimados_Der = bot.motorDerecho.kalman.x_est[1]
         bot.publicarRads(Radianes_Estimados_Izq, Radianes_Estimados_Der)
