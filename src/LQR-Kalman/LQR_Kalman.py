@@ -414,9 +414,9 @@ def main(dt):
         
         Radianes_Estimados_Izq = bot.motorIzquierdo.kalman.x_est[1]
         Radianes_Estimados_Der = bot.motorDerecho.kalman.x_est[1]
-        if Radianes_Estimados_Izq < 0.01:
+        if Radianes_Estimados_Izq < 0.003:
             Radianes_Estimados_Izq = 0.0
-        if Radianes_Estimados_Der < 0.01:
+        if Radianes_Estimados_Der < 0.003:
             Radianes_Estimados_Der = 0.0
         bot.publicarRads(Radianes_Estimados_Izq, Radianes_Estimados_Der)
             
