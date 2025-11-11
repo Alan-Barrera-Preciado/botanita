@@ -20,7 +20,7 @@ emotion_detections_pub = rospy.Publisher('/detecciones_emociones', Float32MultiA
 # ----------------------------------------------------------------------
 
 # YOLO
-YOLO_MODEL_PATH = 'best.onnx'
+YOLO_MODEL_PATH = 'best_new.onnx'
 YOLO_INPUT_SIZE = (320, 320) # width, heigth
 
 # Obtener clases de YOLO
@@ -88,7 +88,7 @@ def imgInputPreProcees(rawImage, inputSize):
 
 # selecting the class with the highest confidence score for each detection
 # discard detections where all confidence scores are below than a chosen threshold (0.6)
-def filter_Detections(results, thresh = 0.6):
+def filter_Detections(results, thresh = 0.55):
     if len(results[0]) == 5: # model is trained on 1 class only
         considerable_detections = [detection for detection in results if detection[4] > thresh]
         considerable_detections = np.array(considerable_detections)
@@ -204,7 +204,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAM_SHAPE[0])
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAM_SHAPE[1])
 rospy.loginfo(f"Cámara iniciada con resolución: {int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))}")
 
-rate = rospy.Rate(1) # Tasa de publicación (1 Hz)
+rate = rospy.Rate(5) # Tasa de publicación (1 Hz)
 
 while not rospy.is_shutdown():
     ret, frame = cap.read()
