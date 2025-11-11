@@ -26,11 +26,11 @@ dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
 # Corriente, Velocidad
 # Q, R
 
-Kalman_Izq = [[1e-9, 5e-14], [3e-7, 5e-7]]
-Kalman_Der = [[1e-9, 5e-14], [3e-7, 5e-7]] # Intento sin ruido
+# Kalman_Izq = [[1e-9, 5e-14], [3e-7, 5e-7]]
+# Kalman_Der = [[1e-9, 5e-14], [3e-7, 5e-7]] # Intento sin ruido
 
-# Kalman_Izq = [[1e-9, 5e-14], [3e-10, 5e-11]]
-# Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-11]]  # Semi funcional
+Kalman_Izq = [[1e-9, 5e-14], [3e-10, 5e-11]]
+Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-11]]  # Semi funcional
 
 # Corriente, Velocidad, Accion de control
 
