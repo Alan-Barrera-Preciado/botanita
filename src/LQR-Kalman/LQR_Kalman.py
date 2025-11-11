@@ -34,8 +34,8 @@ Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-11]]  # Semi funcional
 
 # Corriente, Velocidad, Accion de control
 
-LQR_Izq = [5, 320, 10]
-LQR_Der = [5, 320, 10]
+LQR_Izq = [5, 250, 10]
+LQR_Der = [5, 250, 10]
 
 def _next_count_filename(path):
     """Si path existe, devuelve path_1, path_2, ..."""
