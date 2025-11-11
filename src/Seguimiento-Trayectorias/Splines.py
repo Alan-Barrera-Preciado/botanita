@@ -64,15 +64,15 @@ Ruta = pd.read_csv(Ruta_csv)
 
 CantidadPuntos = len(Ruta.x)
 tf = 0.05
-S = 10
+S = 30
 T = np.linspace(0, S, CantidadPuntos)
 SpX = Obtener_Splines(T, Ruta.x)
-SpY = Obtener_Splines(T, Ruta.y)
+SpY = Obtener_Splines(T, Ruta.y - (0.025))
 
-D = 0.15
-kpx, kpy = 0.05, 0.05
-kdx, kdy = 0.015, 0.015
-kix, kiy = 0.001, 0.001
+D = 0.1
+kpx, kpy = 2.5, 2.5
+kdx, kdy = 1.5, 1.5
+kix, kiy = 0.3, 0.3
 dt = 0.0
 
 Kp = np.array([[kpx, 0], [0, kpy]])
@@ -84,9 +84,9 @@ error_integral = np.array([0.0, 0.0])
 error_anterior = np.array([0.0, 0.0])
 error_derivativo = np.array([0.0, 0.0])
 
-rate = rospy.Rate(5)
+rate = rospy.Rate(20)
 
-pose_x = 0.0
+pose_x = -D
 pose_y = 0.0
 theta_est = 0.0
 
@@ -102,6 +102,8 @@ datos = {
     "y_actual": [],
     "x_deseada": [],
     "y_deseada": [],
+    "Velocidad_x": [],
+    "Velocidad_y": [],
     "Ref_Izq": [],
     "Ref_Der": [],
     "Vel_Lineal": [],
@@ -128,7 +130,7 @@ while not rospy.is_shutdown():
     xdh, xdh_p = Evaluar_Splines(SpX, T, dt)
     ydh, ydh_p = Evaluar_Splines(SpY, T, dt)
 
-    Theta = 0 # theta_est
+    Theta = theta_est
     xh = pose_x + D * cos(Theta)
     yh = pose_y + D * sin(Theta)
 
@@ -138,8 +140,8 @@ while not rospy.is_shutdown():
     ])
 
     error = np.array([xdh - xh, ydh - yh])
-    error_integral += error * 0.01
-    error_derivativo = (error - error_anterior) / 0.01
+    error_integral += error * 0.05
+    error_derivativo = (error - error_anterior) / 0.05
     error_anterior = error
    
     Error_U = Kp @ error + Ki @ error_integral + Kd @ error_derivativo
@@ -170,6 +172,8 @@ while not rospy.is_shutdown():
     datos["y_actual"].append(yh)
     datos["x_deseada"].append(xdh)
     datos["y_deseada"].append(ydh)
+    datos["Velocidad_x"].append(xdh_p)
+    datos["Velocidad_y"].append(ydh_p)
     datos["Ref_Izq"].append(Ref_Izq)
     datos["Ref_Der"].append(Ref_Der)
     datos["Vel_Lineal"].append(Vel_Lineal)
