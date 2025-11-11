@@ -30,11 +30,11 @@ dataset_dir = os.path.join(pkg_path, "src/LQR-Kalman/datasets")
 # Kalman_Der = [[1e-9, 5e-14], [3e-7, 5e-7]] # Intento sin ruido
 
 Kalman_Izq = [[1e-9, 5e-14], [3e-10, 5e-11]]
-Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-11]]  # Semi funcional
+Kalman_Der = [[1e-9, 5e-14], [3e-10, 5e-9]]  # Semi funcional
 
 # Corriente, Velocidad, Accion de control
 
-LQR_Izq = [5, 250, 40]
+LQR_Izq = [5, 280, 10]
 LQR_Der = [5, 250, 40]
 
 def _next_count_filename(path):
