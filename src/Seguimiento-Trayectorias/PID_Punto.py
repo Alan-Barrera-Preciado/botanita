@@ -19,9 +19,9 @@ pub = rospy.Publisher('/vel_referencia', Float32MultiArray, queue_size=10)
     
 S = 15
 D = 0.30
-kpx, kpy = 4.5, 4.5
-kdx, kdy = 1.5, 1.5
-kix, kiy = 0.5, 0.5
+kpx, kpy = 1.5, 1.5
+kdx, kdy = 0.5, 0.5
+kix, kiy = 0.1, 0.1
 dt = 0.0
 
 Kp = np.array([[kpx, 0], [0, kpy]])
