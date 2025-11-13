@@ -318,9 +318,6 @@ def main(dt):
                         [rpmD * 0.1047197551]
                       ])
 
-                ref_Der = 3 * np.cos(t/30)
-                ref_Izq = 2 + np.sin(t/20)
-
                 pwm_Izq, pwm_Der, uSat_I, uSat_D = bot.referenciaMotoresCustom(t, ref_Izq, ref_Der, z_Izq, z_Der)     
               
                 if pwm_Izq < 0:
