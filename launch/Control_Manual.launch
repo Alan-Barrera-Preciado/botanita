@@ -3,7 +3,6 @@
 <launch>
 
   <node pkg="joy" name="Iniciar_Mando_Xbox" type="joy_node"/>
-  
   <node pkg="botanita" name="Control_Xbox" type="Mando_Xbox.py" output="screen">
   </node>
 
