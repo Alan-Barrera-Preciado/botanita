@@ -82,4 +82,3 @@ def rads_callback(msg):
 
 rospy.Subscriber('/rads_motores', Float32MultiArray, rads_callback)
 rospy.spin()
-
