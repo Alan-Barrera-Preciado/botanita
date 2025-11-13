@@ -1,15 +1,13 @@
-volatile unsigned long contadorL = 0;  // Pulsos encoder izquierdo
-volatile unsigned long contadorR = 0;  // Pulsos encoder derecho
+volatile unsigned long contadorL = 0;
+volatile unsigned long contadorR = 0;
 
-const int encoderL_Pin = 16;  // Pin encoder izquierdo
-const int encoderR_Pin = 4;   // Pin encoder derecho
+const int encoderL_Pin = 16;
+const int encoderR_Pin = 4;
 
-// Función de interrupción para el encoder izquierdo
 void IRAM_ATTR contarPulsosL() {
   contadorL++;
 }
 
-// Función de interrupción para el encoder derecho
 void IRAM_ATTR contarPulsosR() {
   contadorR++;
 }
@@ -33,5 +31,5 @@ void loop() {
   Serial.print(" | Pulsos Encoder Derecho: ");
   Serial.println(contadorR);
   
-  delay(500);  // Muestra cada medio segundo
+  delay(500);
 }
