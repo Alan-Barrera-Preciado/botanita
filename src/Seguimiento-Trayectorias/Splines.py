@@ -38,7 +38,6 @@ def Obtener_Splines(T, Puntos):
 
     return np.column_stack((a, b, c, d))
 
-
 def Evaluar_Splines(S, T, time):
     n = len(T)
     if time > T[-1]:
@@ -185,7 +184,6 @@ while not rospy.is_shutdown():
 
 df = pd.DataFrame(datos)
 
-# Crear carpeta de salida dentro del paquete (si no existe)
 resultados_dir = os.path.join(pkg_path, "src", "Resultados")
 os.makedirs(resultados_dir, exist_ok=True)
 
