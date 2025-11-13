@@ -42,7 +42,7 @@ manual_gif = 0
 
 # Mapeo de IDs de Detecciones (Ajusta estos IDs a los que realmente manda tu sistema YOLO)
 DETECTION_CLASSES = {
-    1.0: "face", 2.0: "fu", 3.0: "palm", 4.0: "peace-sign", 
+    0.0:"cora", 1.0: "face", 2.0: "fu", 3.0: "palm", 4.0: "peace-sign", 
     5.0: "phone", 6.0: "phone-camera", 7.0: "thumbs-down", 8.0: "thumbs-up"
 }
 
@@ -56,19 +56,21 @@ EMOTION_CLASSES = {
 # Usaremos listas para los GIFs con múltiples versiones
 GIF_MAP = {
     "neutral": 1,         # BASE 01
-    "disgust": [8, 9],    # DISGUSTOV1/V2 08, 09
-    "anger": 11,          # ENOJO 11
-    "happy": 12,          # FELIZ 12 (NOTA: "content" se eliminó de aquí)
-    "fear": 18,           # MIEDO 18
-    "sad": 24,            # TRISTE 24
+    "disgust": 7,    # DISGUSTOV1/V2 08, 09
+    "anger": 9,          # ENOJO 11
+    "happy": 10,          # FELIZ 12 (NOTA: "content" se eliminó de aquí)
+    "fear": 14,           # MIEDO 18
+    "sad": 20,            # TRISTE 24
     
     # Gestos/Objetos con Alta Prioridad
-    "fu": [13, 14],       # GROSERIAV1/V2 13, 14
-    "phone": [19, 20, 21, 22, 23],        # FOTO_X (Celular)
-    "phone-camera": [19, 20, 21, 22, 23], # FOTO_X (Celular) 
+    "fu": 11,       # GROSERIAV1/V2 13, 14
+    "phone": [15, 16, 17, 18],        # FOTO_X (Celular)
+    "phone-camera": [15, 16, 17, 18], # FOTO_X (Celular) 
     
     # Estados especiales (No automáticos)
-    "dormida": 10,        # DORMIDA 10 (Usado por lógica de inactividad)
+    "dormida": 8,        # DORMIDA 10 (Usado por lógica de inactividad)
+    "palm": 19,
+    "cora": 2,
 }
 
 # -------------------------------------------------------------
@@ -94,7 +96,7 @@ def select_gif_logic():
     det_name = current_detections["name"]
     det_conf = current_detections["confidence"]
     
-    if det_conf > 0.6: # Umbral de confianza
+    if det_conf > 0.55: # Umbral de confianza
         if det_name in ["phone", "phone-camera"]:
             # Elige un GIF aleatorio entre 19, 20, 21, 22, 23
             return random.choice(GIF_MAP.get(det_name))
@@ -102,8 +104,13 @@ def select_gif_logic():
     # 3. PRIORIDAD MEDIA: GESTOS (Dedo Medio)
         if det_name == "fu":
             # Elige un GIF aleatorio entre 13 y 14
-            return random.choice(GIF_MAP.get(det_name))
-            
+            return GIF_MAP["fu"]
+
+        if det_name == "cora":
+            return GIF_MAP["cora"]
+
+        if det_name == "palm":
+            return GIF_MAP["palm"]
     # 4. PRIORIDAD BAJA: EMOCIÓN DOMINANTE (IMITACIÓN)
     emotion_key = current_emotion["name"]
     gif_choice = GIF_MAP.get(emotion_key, GIF_MAP["neutral"])
@@ -310,10 +317,10 @@ def gif_controller_node():
     rospy.loginfo("Nodo GIF Controller iniciado y suscrito a topics.")
     
     # 3. Bucle de control (publicación serial)
-    rate = rospy.Rate(10) # 10 Hz para un control responsivo
+    rate = rospy.Rate(5) # 10 Hz para un control responsivo
     
     # Constante para el retraso (debounce)
-    GIF_CHANGE_DELAY = 5.0 # 5 segundos de retraso
+    GIF_CHANGE_DELAY = 7.0 # 5 segundos de retraso
     
     while not rospy.is_shutdown():
         
